@@ -1,0 +1,13 @@
+# People whose names appear in your notes, and what that means for the category.
+# (Used from the categorising stage on.)
+#
+# The examples are invented - replace them with your own or delete the line.
+
+people:
+  # Expenses for this child go to "Children", whatever was bought.
+  - names: [Mimi, Maria]
+    category: Children
+
+  # A label only: the category follows the purchase, the name stays in the description.
+  - names: [John]
+    category: ""

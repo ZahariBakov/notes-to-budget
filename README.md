@@ -5,8 +5,20 @@
 Turn the short expense notes you type on your phone into a monthly budget
 workbook, and answer questions only about the entries that are unclear.
 
-> **Status: early development.** The project skeleton is in place; the
-> features below are being built stage by stage.
+> **Status: early development.** Creating a data folder and checking your
+> settings work today. Reading notes, categorising, reconciling and building
+> the workbook are being built stage by stage.
+
+## What works today
+
+```
+notes-to-budget init my-budget --language en    # a data folder with starter settings
+notes-to-budget check --data-folder my-budget   # are my settings valid?
+```
+
+`init` gives you categories, accounts and rules to start from; edit the files
+in `my-budget/config` to match your own life. `check` reads them and explains
+any problem in plain words, with the file and the place to look at.
 
 ## The idea
 

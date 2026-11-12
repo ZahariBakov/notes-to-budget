@@ -27,7 +27,10 @@ notes-to-budget = "notes_to_budget.command_line.main:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-notes_to_budget = ["localization/locales/*.yaml"]
+notes_to_budget = [
+    "localization/locales/*.yaml",
+    "starter_configuration/*/*.yaml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

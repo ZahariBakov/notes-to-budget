@@ -1,0 +1,33 @@
+# Keywords -> category. The first match from the top wins.
+# (Used from the categorising stage on.)
+
+rules:
+  - when_description_contains: [Lidl, Aldi, Tesco, groceries, bread, water]
+    category: Groceries
+
+  - when_description_contains: [lunch]
+    category: Food at work
+
+  - when_description_contains: [dinner, restaurant, pizza, kebab, burger]
+    category: Eating out
+
+  - when_description_contains: [coffee, bar]
+    category: Cafes and bars
+
+  - when_description_contains: [bills, electricity, heating, internet]
+    category: Bills
+
+  - when_description_contains: [petrol, diesel, charging, parking, ticket]
+    category: Transport
+
+  - when_description_contains: [road tax, tyres, car wash, car repair]
+    category: Car
+
+  - when_description_contains: [pharmacy, doctor]
+    category: Health
+
+  - when_description_contains: [hairdresser]
+    category: Personal care
+
+  - when_description_contains: [gift, birthday]
+    category: Celebrations and gifts

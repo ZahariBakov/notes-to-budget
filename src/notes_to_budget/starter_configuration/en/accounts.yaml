@@ -1,0 +1,31 @@
+# Your accounts: the places where you keep money.
+#
+# code              - the short letter you write for the account in your notes.
+# reconciled        - true if you write its balance in your notes every day.
+# balance_position  - which number it is in the balances line
+#                     ("14 - 120 / 340 / 1500": 1 = cash, 2 = wallet, 3 = card).
+# also_written_as   - other ways you write it: words or frequent typos.
+
+accounts:
+  - code: C
+    name: Cash
+    reconciled: true
+    balance_position: 1
+    also_written_as: [cash]
+
+  - code: R
+    name: Online wallet
+    reconciled: true
+    balance_position: 2
+    also_written_as: [Revolut, wallet]
+
+  - code: B
+    name: Bank card
+    reconciled: true
+    balance_position: 3
+    also_written_as: [card, bank]
+
+  - code: CC
+    name: Credit card
+    reconciled: false
+    also_written_as: [credit, credit card]

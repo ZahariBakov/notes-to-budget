@@ -1,0 +1,44 @@
+# Съобщения на български. Ключовете и {местата за попълване} са същите като в en.yaml.
+
+init:
+  created: "Папката с твоите данни е създадена: {folder}"
+  next_steps: |-
+    Следващи стъпки:
+      1. Отвори {configuration_folder} и нагласи категориите и сметките по себе си.
+      2. Сложи записките си в {notes_folder}.
+      3. Провери настройките с:  notes-to-budget check --data-folder "{folder}"
+  settings_already_exist: "В {folder} вече има настройки. Нищо не е променено, така че твоите настройки са запазени."
+
+check:
+  settings_are_valid: "Настройките в {folder} са наред."
+  language: "Език: {language}"
+  expense_categories: "Категории за разходи: {categories} в {groups} групи"
+  income_categories: "Категории за приходи: {names}"
+  accounts_heading: "Сметки:"
+  account_line: "  {code}  {name}  ({reconciliation})"
+  reconciled: "сверява се с наличностите в записките"
+  not_reconciled: "не се сверява"
+
+configuration:
+  data_folder_not_given: "Не знам къде е папката с твоите данни. Добави --data-folder <папка> или задай променливата на средата {variable}."
+  data_folder_missing: "Папката с данни {folder} не съществува. Създай я с:  notes-to-budget init <папка>"
+  file_missing: "Липсва файлът с настройки {file}."
+  file_not_valid_yaml: "Файлът с настройки {file} не може да се прочете: {reason}"
+  file_must_hold_named_values: "Файлът с настройки {file} е празен или не съдържа именувани стойности (име: стойност)."
+  value_missing: "В {file}: липсва '{place}'."
+  value_must_be_text: "В {file}: '{place}' трябва да е непразен текст."
+  value_must_be_list: "В {file}: '{place}' трябва да е списък (редове, които започват с '- ')."
+  value_must_be_yes_or_no: "В {file}: '{place}' трябва да е true или false."
+  value_must_be_whole_number: "В {file}: '{place}' трябва да е цяло число."
+  value_must_hold_named_values: "В {file}: '{place}' трябва да съдържа именувани стойности (име: стойност)."
+  language_not_supported: "В {file}: езикът '{language}' не се поддържа. Избери един от: {supported}."
+  workbook_file_name_needs_year: "В {file}: 'workbook_file_name' трябва да съдържа {{year}}, например \"Бюджет {{year}}.xlsx\"."
+  no_expense_categories: "В {file}: няма нито една категория за разходи. Добави поне една група с една категория."
+  no_income_categories: "В {file}: 'income_categories' е празно. Добави поне една, например Заплата."
+  category_listed_twice: "В {file}: категорията '{category}' е записана повече от веднъж. Всяко име на категория трябва да е единствено."
+  special_category_not_among_expenses: "В {file}: '{place}' е '{category}', но няма категория за разходи с това име."
+  no_accounts: "В {file}: няма сметки. Добави поне една."
+  account_written_the_same_way_twice: "В {file}: '{written}' се използва за повече от една сметка (като код или в 'also_written_as')."
+  reconciled_account_needs_balance_position: "В {file}: сметката '{account}' се сверява, затова ѝ трябва 'balance_position'."
+  balance_position_needs_reconciled_account: "В {file}: сметката '{account}' има 'balance_position', но не се сверява. Сложи 'reconciled: true' или махни позицията."
+  balance_positions_must_count_from_one: "В {file}: позициите на наличностите трябва да са 1, 2, 3... без пропуски и повторения, а са: {positions}."

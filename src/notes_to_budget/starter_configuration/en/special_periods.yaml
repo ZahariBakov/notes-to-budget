@@ -1,0 +1,15 @@
+# Periods with special rules, for example holidays.
+# (Used from the categorising stage on.)
+#
+# Example - remove the "#" and change the dates:
+#
+# periods:
+#   - name: Seaside
+#     from: 2026-07-10
+#     to: 2026-07-17
+#     everything_goes_to: Holidays
+#     # If you do not write detailed notes on those days: the spending is
+#     # worked out from the balances (left with - came back with).
+#     days_without_notes: spend_by_balances
+
+periods: []

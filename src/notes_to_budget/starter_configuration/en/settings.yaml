@@ -1,0 +1,15 @@
+# General settings.
+
+# Language of the workbook and of the messages: bg or en.
+language: en
+
+currency_symbol: "€"
+
+# Names of the folders inside your data folder.
+folders:
+  notes: notes      # put the notes from your phone here
+  ledger: ledger    # the approved entries, one file per month
+  review: review    # questions that wait for your answer
+
+# Name of the workbook; {year} is replaced by the year.
+workbook_file_name: "Budget {year}.xlsx"

@@ -1,0 +1,29 @@
+# What your notes look like.
+# (Used from the note-reading stage on.)
+#
+# Example:
+#   14 - 120 / 340 / 1500        <- the day and the balances
+#    - 12 - lunch - R            <- an expense from account R
+#    + 300 - rent - C            <- income into account C
+#    - 200 - from card to cash   <- a transfer between your own accounts
+
+# When you write the balances: morning = before the day's entries;
+# evening = after them.
+balance_line_is: morning
+
+# true if the newest day is at the top of the file.
+newest_day_first: true
+
+# Sentences for a transfer between accounts. {from} and {to} are the accounts.
+transfer_phrases:
+  - "from {from} to {to}"
+
+# Words for savings.
+savings_phrases:
+  taken_out: [from savings]
+  put_in: [saved]
+
+investment_phrases: [invested]
+
+# The mark you add when you are not sure about an entry.
+uncertain_marker: "?"

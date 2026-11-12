@@ -1,0 +1,81 @@
+# Your categories. Change them freely: add, remove, rename.
+# Every name must be unique.
+
+expense_groups:
+  - name: Fixed
+    categories:
+      - name: Bills
+        includes: electricity, water, heating, internet, phone, bank fees
+      - name: Loan
+        includes: monthly loan payments
+      - name: Subscriptions
+        includes: music, films, software and other monthly services
+      - name: Insurance and taxes
+        includes: home insurance and property taxes
+
+  - name: Everyday
+    categories:
+      - name: Groceries
+        includes: supermarkets, food and drinks for home
+      - name: Home
+        includes: cleaning supplies, furniture, electronics, repairs
+      - name: Food at work
+        includes: lunch, snacks and coffee on a working day
+      - name: Eating out
+        includes: restaurants, delivery, any food not cooked at home
+      - name: Cafes and bars
+        includes: coffee and drinks out
+
+  - name: Car and transport
+    categories:
+      - name: Car
+        includes: insurance, road tax, repairs, tyres, car wash
+      - name: Transport
+        includes: fuel, charging, parking, tickets
+
+  - name: Family
+    categories:
+      - name: Children
+        includes: everything for the children, except gifts
+      - name: Pet
+        includes: food, vet
+
+  - name: Personal and leisure
+    categories:
+      - name: Health
+        includes: pharmacy, doctors, tests
+      - name: Personal care
+        includes: hairdresser, cosmetics, hygiene
+      - name: Clothes
+        includes: clothes and shoes
+      - name: Sport
+        includes: sport activities and equipment
+      - name: Entertainment
+        includes: cinema, concerts, games
+      - name: Holidays
+        includes: hotels and trips
+      - name: Celebrations and gifts
+        includes: gifts, birthdays, occasions
+      - name: Education
+        includes: courses, fees, books
+
+  - name: Other
+    categories:
+      - name: Other
+        includes: whatever truly fits nowhere else
+      - name: Lost
+        includes: money that is gone without a record
+
+income_categories:
+  - Salary
+  - Rent
+  - Additional
+
+# Savings and investments are not expenses; they are shown separately.
+savings_category: Savings
+investments_category: Investments
+
+# Where an expense goes when it fits nowhere, and where unrecorded money goes.
+# Both must be among the expense categories above.
+fallback_category: Other
+lost_money_category: Lost

@@ -1,0 +1,33 @@
+# Ключови думи → категория. Първото съвпадение отгоре надолу печели.
+# (Ще се използва от етапа с категоризирането.)
+
+rules:
+  - when_description_contains: [Лидл, Билла, Кауфланд, Фантастико, пазар, хляб, вода]
+    category: Пазар
+
+  - when_description_contains: [обяд]
+    category: Хранене в работа
+
+  - when_description_contains: [вечеря, ресторант, пица, дюнер, бургер]
+    category: Хранене навън
+
+  - when_description_contains: [кафе, бар]
+    category: Заведения
+
+  - when_description_contains: [сметки, ток, парно, интернет]
+    category: Сметки
+
+  - when_description_contains: [бензин, дизел, зареждане, паркинг, билет]
+    category: Транспорт
+
+  - when_description_contains: [винетка, гуми, мивка, ремонт кола]
+    category: Кола
+
+  - when_description_contains: [аптека, лекар]
+    category: Здраве
+
+  - when_description_contains: [фризьор]
+    category: Лична грижа
+
+  - when_description_contains: [подарък, рожден ден]
+    category: Празници и подаръци

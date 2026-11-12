@@ -1,0 +1,31 @@
+# Твоите сметки: къде държиш пари.
+#
+# code              – кратката буква, с която пишеш сметката в записките.
+# reconciled        – true, ако в записките пишеш наличността ѝ всеки ден.
+# balance_position  – кое поред число е тя в реда с наличностите
+#                     („14 - 120 / 340 / 1500“: 1 = кеш, 2 = портфейл, 3 = карта).
+# also_written_as   – други начини, по които я пишеш: думи или чести грешки.
+
+accounts:
+  - code: Б
+    name: Кеш
+    reconciled: true
+    balance_position: 1
+    also_written_as: [брой, кеш]
+
+  - code: Р
+    name: Онлайн портфейл
+    reconciled: true
+    balance_position: 2
+    also_written_as: [Револют]
+
+  - code: К
+    name: Банкова карта
+    reconciled: true
+    balance_position: 3
+    also_written_as: [карта]
+
+  - code: КР
+    name: Кредитна карта
+    reconciled: false
+    also_written_as: [кредитна, кредитна карта]

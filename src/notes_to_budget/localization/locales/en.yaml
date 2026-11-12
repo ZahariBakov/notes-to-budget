@@ -1,0 +1,44 @@
+# English messages. Keep the same keys and {placeholders} as in bg.yaml.
+
+init:
+  created: "Created your data folder: {folder}"
+  next_steps: |-
+    Next steps:
+      1. Open {configuration_folder} and adjust the categories and accounts to your own.
+      2. Put your notes in {notes_folder}.
+      3. Check your settings with:  notes-to-budget check --data-folder "{folder}"
+  settings_already_exist: "{folder} already has settings. Nothing was changed, so your own settings are safe."
+
+check:
+  settings_are_valid: "The settings in {folder} are valid."
+  language: "Language: {language}"
+  expense_categories: "Expense categories: {categories} in {groups} groups"
+  income_categories: "Income categories: {names}"
+  accounts_heading: "Accounts:"
+  account_line: "  {code}  {name}  ({reconciliation})"
+  reconciled: "checked against the balances in the notes"
+  not_reconciled: "not checked against balances"
+
+configuration:
+  data_folder_not_given: "I do not know where your data folder is. Add --data-folder <folder>, or set the environment variable {variable}."
+  data_folder_missing: "The data folder {folder} does not exist. Create one with:  notes-to-budget init <folder>"
+  file_missing: "The settings file {file} is missing."
+  file_not_valid_yaml: "The settings file {file} could not be read: {reason}"
+  file_must_hold_named_values: "The settings file {file} is empty or is not a list of named values (name: value)."
+  value_missing: "In {file}: '{place}' is missing."
+  value_must_be_text: "In {file}: '{place}' must be a non-empty text."
+  value_must_be_list: "In {file}: '{place}' must be a list (lines that start with '- ')."
+  value_must_be_yes_or_no: "In {file}: '{place}' must be true or false."
+  value_must_be_whole_number: "In {file}: '{place}' must be a whole number."
+  value_must_hold_named_values: "In {file}: '{place}' must hold named values (name: value)."
+  language_not_supported: "In {file}: the language '{language}' is not supported. Choose one of: {supported}."
+  workbook_file_name_needs_year: "In {file}: 'workbook_file_name' must contain {{year}}, for example \"Budget {{year}}.xlsx\"."
+  no_expense_categories: "In {file}: there is no expense category. Add at least one group with one category."
+  no_income_categories: "In {file}: 'income_categories' is empty. Add at least one, for example Salary."
+  category_listed_twice: "In {file}: the category '{category}' is listed more than once. Every category name must be unique."
+  special_category_not_among_expenses: "In {file}: '{place}' is '{category}', but no expense category has that name."
+  no_accounts: "In {file}: there are no accounts. Add at least one."
+  account_written_the_same_way_twice: "In {file}: '{written}' is used for more than one account (as a code or in 'also_written_as')."
+  reconciled_account_needs_balance_position: "In {file}: the account '{account}' is reconciled, so it needs a 'balance_position'."
+  balance_position_needs_reconciled_account: "In {file}: the account '{account}' has a 'balance_position' but is not reconciled. Set 'reconciled: true' or remove the position."
+  balance_positions_must_count_from_one: "In {file}: the balance positions must be 1, 2, 3... without gaps or repeats, but they are: {positions}."
