@@ -1,0 +1,16 @@
+#!/bin/sh
+# Runs before every commit and stops it if a file looks like personal data.
+# Turn it on once per clone with:  git config core.hooksPath .githooks
+
+repository_root="$(git rev-parse --show-toplevel)"
+guard_script="$repository_root/src/notes_to_budget/privacy/personal_data_guard.py"
+
+# Different systems name the Python command differently; use the first that works.
+for python_command in py python3 python; do
+    if "$python_command" -c "import sys" >/dev/null 2>&1; then
+        exec "$python_command" "$guard_script"
+    fi
+done
+
+echo "Commit stopped: Python was not found, so the personal data check could not run." >&2
+exit 1

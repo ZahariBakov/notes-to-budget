@@ -1,0 +1,29 @@
+# --- Personal data: never commit ---------------------------------------
+# Your notes, ledgers, settings and workbooks belong in your own data
+# folder, outside this repository. These patterns are a second safety net.
+*.xlsx
+*.xlsm
+*.xls
+*.ods
+*.csv
+*.txt
+/data/
+/my-data/
+
+# Invented sample data is allowed.
+!examples/**
+!tests/fixtures/**
+
+# --- Python -------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# --- Editors ------------------------------------------------------------
+.idea/
+.vscode/

@@ -1,0 +1,2 @@
+# Keep the same line endings on every system (the git hook needs them).
+* text=auto eol=lf
