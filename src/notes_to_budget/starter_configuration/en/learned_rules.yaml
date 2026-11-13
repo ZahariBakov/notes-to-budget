@@ -1,5 +1,11 @@
-# Rules made from your answers. The program fills this file in:
-# when you answer a question about an unclear entry, the answer is saved here
-# and the same question is not asked again.
+# Rules made from your answers. They are tried first, before all others.
+#
+# When you answer a question about an unclear entry, the answer is saved here
+# and the same question is not asked again. You may also add rules by hand:
+#
+# rules:
+#   - description: gym membership      # exactly this description, letter case does not matter
+#     category: Sport
+#     one_off: false                   # true = a one-off expense, left out of the averages
 
 rules: []

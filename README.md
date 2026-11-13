@@ -21,6 +21,15 @@ notes-to-budget read-notes examples/en/notes/March-2026.txt --data-folder my-bud
 every line it could not read, with the line number and the reason. It changes
 nothing. See [examples](examples/README.md) for the notes format.
 
+```
+notes-to-budget preview examples/en/notes/March-2026.txt --data-folder my-budget
+```
+
+`preview` shows the type and category chosen for every entry and the rule
+that chose it. Entries no rule could decide are flagged for your review,
+never guessed. The rules are yours: keywords, people, holidays and your own
+earlier answers, all in plain text files in `my-budget/config`.
+
 `init` gives you categories, accounts and rules to start from; edit the files
 in `my-budget/config` to match your own life. `check` reads them and explains
 any problem in plain words, with the file and the place to look at.

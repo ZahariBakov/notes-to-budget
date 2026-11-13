@@ -44,7 +44,31 @@ notes:
     day_out_of_order_newest_first: "The day {day} is out of order: the days should go from the newest to the oldest. Is the date right?"
     day_out_of_order_oldest_first: "The day {day} is out of order: the days should go from the oldest to the newest. Is the date right?"
 
+types:
+  expense: "expense"
+  income: "income"
+  transfer: "transfer"
+  saving: "saving"
+  investment: "investment"
+
+preview:
+  transaction_line: "  {day}  {amount:>9}  {type:<10}  {description}  ->  {decision}  [{rule}]"
+  review_line: "        ? {note}"
+  no_category: "(no category)"
+  summary: "{file}: {entries} entries, {review} need your review."
+  unread_lines: "{problems} lines could not be read and are not shown; see them with: notes-to-budget read-notes"
+
+review:
+  no_rule_decided: "no rule could choose a category"
+  transfer_with_other_words: "a transfer with other words in it - is part of it a fee?"
+  saving_with_other_words: "savings with other words in it - was the money also spent on something?"
+  account_missing: "the account is not written"
+  marked_uncertain: "you marked this entry as uncertain"
+
 configuration:
+  value_must_be_date: "In {file}: '{place}' must be a date written as YEAR-MONTH-DAY, for example 2026-07-10."
+  period_ends_before_it_starts: "In {file}: the period '{place}' ends before it starts."
+  rule_uses_unknown_category: "In {file}: '{place}' uses the category '{category}', which is not in categories.yaml."
   value_not_one_of: "In {file}: '{place}' must be one of: {allowed}."
   transfer_phrase_needs_destination: "In {file}: the transfer phrase '{phrase}' must contain {{to}}, the account the money goes to."
   data_folder_not_given: "I do not know where your data folder is. Add --data-folder <folder>, or set the environment variable {variable}."

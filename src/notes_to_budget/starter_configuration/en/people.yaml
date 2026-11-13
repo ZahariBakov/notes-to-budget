@@ -1,12 +1,14 @@
 # People whose names appear in your notes, and what that means for the category.
-# (Used from the categorising stage on.)
+# People are checked before the keywords.
 #
 # The examples are invented - replace them with your own or delete the line.
 
 people:
-  # Expenses for this child go to "Children", whatever was bought.
+  # Expenses for this child go to "Children", whatever was bought...
   - names: [Mimi, Maria]
     category: Children
+    # ...except gifts: the keywords decide about those.
+    unless_description_contains: [gift, birthday]
 
   # A label only: the category follows the purchase, the name stays in the description.
   - names: [John]

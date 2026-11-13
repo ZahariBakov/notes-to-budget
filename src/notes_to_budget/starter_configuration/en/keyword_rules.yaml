@@ -1,12 +1,19 @@
 # Keywords -> category. The first match from the top wins.
-# (Used from the categorising stage on.)
+#
+# A keyword is looked for at the start of a word: "lunch" also finds
+# "lunches", but "bar" does not find "rhubarb". Letter case does not matter.
+#
+# Optional:
+#   category_on_weekends          - another category on Saturday and Sunday
+#   unless_description_contains   - words that make the rule step aside
 
 rules:
   - when_description_contains: [Lidl, Aldi, Tesco, groceries, bread, water]
     category: Groceries
 
-  - when_description_contains: [lunch]
+  - when_description_contains: [lunch, breakfast]
     category: Food at work
+    category_on_weekends: Eating out
 
   - when_description_contains: [dinner, restaurant, pizza, kebab, burger]
     category: Eating out

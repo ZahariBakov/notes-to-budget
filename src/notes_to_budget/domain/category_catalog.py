@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from notes_to_budget.domain.category import Category, CategoryGroup
+from notes_to_budget.domain.transaction_type import TransactionType
 
 
 @dataclass(frozen=True)
@@ -32,3 +33,15 @@ class CategoryCatalog:
 
     def is_known_category(self, category_name: str) -> bool:
         return category_name in self.all_category_names()
+
+    def transaction_type_of(self, category_name: str) -> TransactionType | None:
+        """What kind of money movement a category stands for."""
+        if category_name in self.expense_category_names():
+            return TransactionType.EXPENSE
+        if category_name in self.income_category_names:
+            return TransactionType.INCOME
+        if category_name == self.savings_category_name:
+            return TransactionType.SAVING
+        if category_name == self.investments_category_name:
+            return TransactionType.INVESTMENT
+        return None

@@ -13,6 +13,7 @@ from notes_to_budget.command_line.check_command import add_check_command
 from notes_to_budget.command_line.console_output import make_console_output_safe
 from notes_to_budget.command_line.init_command import add_init_command
 from notes_to_budget.command_line.message_language import choose_message_language
+from notes_to_budget.command_line.preview_command import add_preview_command
 from notes_to_budget.command_line.read_notes_command import add_read_notes_command
 from notes_to_budget.localization.translator import Translator
 from notes_to_budget.user_facing_error import UserFacingError
@@ -37,6 +38,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
     add_init_command(commands)
     add_check_command(commands)
     add_read_notes_command(commands)
+    add_preview_command(commands)
     return parser
 
 

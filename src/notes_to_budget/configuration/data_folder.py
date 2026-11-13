@@ -39,6 +39,22 @@ class DataFolder:
     def notes_format_file(self) -> Path:
         return self.configuration_folder / "notes_format.yaml"
 
+    @property
+    def keyword_rules_file(self) -> Path:
+        return self.configuration_folder / "keyword_rules.yaml"
+
+    @property
+    def people_file(self) -> Path:
+        return self.configuration_folder / "people.yaml"
+
+    @property
+    def learned_rules_file(self) -> Path:
+        return self.configuration_folder / "learned_rules.yaml"
+
+    @property
+    def special_periods_file(self) -> Path:
+        return self.configuration_folder / "special_periods.yaml"
+
     def folder_named(self, folder_name: str) -> Path:
         return self.root / folder_name
 

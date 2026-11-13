@@ -1,5 +1,5 @@
-# Periods with special rules, for example holidays.
-# (Used from the categorising stage on.)
+# Periods with special rules, for example holidays: everything spent on
+# those days goes to one category.
 #
 # Example - remove the "#" and change the dates:
 #
@@ -8,6 +8,9 @@
 #     from: 2026-07-10
 #     to: 2026-07-17
 #     everything_goes_to: Holidays
+#     # Categories that stay as they are: a bill paid during the holiday
+#     # is still a bill.
+#     except_categories: [Bills, Loan, Subscriptions]
 #     # If you do not write detailed notes on those days: the spending is
 #     # worked out from the balances (left with - came back with).
 #     days_without_notes: spend_by_balances

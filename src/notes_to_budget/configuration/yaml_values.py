@@ -5,6 +5,7 @@ error can say exactly where to look: ``accounts[2].code``.
 """
 
 from collections.abc import Mapping
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -21,9 +22,28 @@ def read_required_text(values: Mapping[str, Any], key: str, file: Path, inside: 
 def read_optional_text(
     values: Mapping[str, Any], key: str, file: Path, inside: str = "", default: str = ""
 ) -> str:
-    if values.get(key) is None:
+    if values.get(key) in (None, ""):
         return default
     return _as_text(values[key], file, describe_place(inside, key))
+
+
+def read_optional_list(
+    values: Mapping[str, Any], key: str, file: Path, inside: str = ""
+) -> list[Any]:
+    if values.get(key) is None:
+        return []
+    return _as_list(values[key], file, describe_place(inside, key))
+
+
+def read_required_date(values: Mapping[str, Any], key: str, file: Path, inside: str = "") -> date:
+    """Read a date written as ``2026-07-10``."""
+    place = describe_place(inside, key)
+    value = values.get(key)
+    if value is None:
+        raise ConfigurationError("configuration.value_missing", file=file, place=place)
+    if isinstance(value, datetime) or not isinstance(value, date):
+        raise ConfigurationError("configuration.value_must_be_date", file=file, place=place)
+    return value
 
 
 def read_required_list(

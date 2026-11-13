@@ -44,7 +44,31 @@ notes:
     day_out_of_order_newest_first: "Денят {day} не е на мястото си: дните трябва да са от най-новия към най-стария. Вярна ли е датата?"
     day_out_of_order_oldest_first: "Денят {day} не е на мястото си: дните трябва да са от най-стария към най-новия. Вярна ли е датата?"
 
+types:
+  expense: "разход"
+  income: "приход"
+  transfer: "прехвърляне"
+  saving: "спестяване"
+  investment: "инвестиция"
+
+preview:
+  transaction_line: "  {day}  {amount:>9}  {type:<11}  {description}  ->  {decision}  [{rule}]"
+  review_line: "        ? {note}"
+  no_category: "(без категория)"
+  summary: "{file}: {entries} записа, {review} искат твоята проверка."
+  unread_lines: "{problems} реда не са разчетени и не са показани; виж ги с: notes-to-budget read-notes"
+
+review:
+  no_rule_decided: "никое правило не избра категория"
+  transfer_with_other_words: "прехвърляне с други думи в него – част от сумата такса ли е?"
+  saving_with_other_words: "спестявания с други думи в записа – парите похарчени ли са за нещо?"
+  account_missing: "сметката не е написана"
+  marked_uncertain: "отбелязал си записа като несигурен"
+
 configuration:
+  value_must_be_date: "В {file}: '{place}' трябва да е дата във вида ГОДИНА-МЕСЕЦ-ДЕН, например 2026-07-10."
+  period_ends_before_it_starts: "В {file}: периодът '{place}' свършва, преди да е започнал."
+  rule_uses_unknown_category: "В {file}: '{place}' използва категорията '{category}', която я няма в categories.yaml."
   value_not_one_of: "В {file}: '{place}' трябва да е едно от: {allowed}."
   transfer_phrase_needs_destination: "В {file}: изречението за прехвърляне '{phrase}' трябва да съдържа {{to}} – сметката, в която отиват парите."
   data_folder_not_given: "Не знам къде е папката с твоите данни. Добави --data-folder <папка> или задай променливата на средата {variable}."
