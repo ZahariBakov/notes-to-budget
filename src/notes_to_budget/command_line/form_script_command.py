@@ -12,7 +12,7 @@ from pathlib import Path
 from notes_to_budget.configuration.configuration import load_configuration
 from notes_to_budget.configuration.data_folder import find_data_folder
 from notes_to_budget.google_form.form_script_builder import (
-    SCRIPT_TEMPLATE_FILE_NAME,
+    FINISHED_SCRIPT_FILE_NAME,
     build_form_script,
 )
 from notes_to_budget.localization.translator import Translator
@@ -26,7 +26,7 @@ def add_form_script_command(commands: argparse._SubParsersAction) -> None:
     )
     command.add_argument(
         "--output",
-        help=f"where to write the script (default: {SCRIPT_TEMPLATE_FILE_NAME} "
+        help=f"where to write the script (default: {FINISHED_SCRIPT_FILE_NAME} "
         "in your data folder)",
     )
     command.add_argument(
@@ -44,7 +44,7 @@ def run_form_script_command(arguments: argparse.Namespace) -> int:
     script_file = (
         Path(arguments.output).expanduser()
         if arguments.output
-        else data_folder.root / SCRIPT_TEMPLATE_FILE_NAME
+        else data_folder.root / FINISHED_SCRIPT_FILE_NAME
     )
     script_file.write_text(build_form_script(configuration, translator), encoding="utf-8")
 

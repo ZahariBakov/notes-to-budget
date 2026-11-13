@@ -26,6 +26,12 @@ const TO_ACCOUNT_COLUMN = 'F';
 const FIRST_TABLE_ROW = 10;
 
 function createBudgetForm() {
+  if (SETUP === null) {
+    throw new Error(
+        'This is the empty template, without your categories. ' +
+        'Run "notes-to-budget form-script" and paste the file it writes ' +
+        '(create_budget_form.gs in your data folder) instead of this one.');
+  }
   const labels = SETUP.labels;
   const spreadsheet = SpreadsheetApp.create(labels.spreadsheetTitle);
   const form = createForm(labels);

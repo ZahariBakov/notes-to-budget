@@ -7,7 +7,8 @@ from notes_to_budget.configuration.configuration import Configuration
 from notes_to_budget.google_form.form_setup import build_form_setup
 from notes_to_budget.localization.translator import Translator
 
-SCRIPT_TEMPLATE_FILE_NAME = "create_budget_form.gs"
+SCRIPT_TEMPLATE_FILE_NAME = "create_budget_form.template.gs"
+FINISHED_SCRIPT_FILE_NAME = "create_budget_form.gs"
 SETUP_PLACEHOLDER = "/*SETUP_PLACEHOLDER*/ null"
 
 
