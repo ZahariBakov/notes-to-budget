@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from notes_to_budget import __version__
 from notes_to_budget.command_line.check_command import add_check_command
 from notes_to_budget.command_line.console_output import make_console_output_safe
+from notes_to_budget.command_line.form_script_command import add_form_script_command
 from notes_to_budget.command_line.init_command import add_init_command
 from notes_to_budget.command_line.message_language import choose_message_language
 from notes_to_budget.command_line.preview_command import add_preview_command
@@ -39,6 +40,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
     add_check_command(commands)
     add_read_notes_command(commands)
     add_preview_command(commands)
+    add_form_script_command(commands)
     return parser
 
 

@@ -30,6 +30,7 @@ where = ["src"]
 notes_to_budget = [
     "localization/locales/*.yaml",
     "starter_configuration/*/*.yaml",
+    "google_form/*.gs",
 ]
 
 [tool.pytest.ini_options]

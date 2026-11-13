@@ -9,6 +9,25 @@ workbook, and answer questions only about the entries that are unclear.
 > settings work today. Reading notes, categorising, reconciling and building
 > the workbook are being built stage by stage.
 
+## Entering expenses on your phone
+
+The simplest way to record an expense is a form: type the amount, choose a
+category, choose the account. No free text for a program to decipher.
+
+```
+notes-to-budget form-script --data-folder my-budget
+```
+
+writes a Google Apps Script made from **your** categories and accounts. Run it
+once in your own Google account and it creates:
+
+- a **Google Form** you can pin to the home screen of your phone;
+- a **spreadsheet for the current month** that receives every entry, shows
+  plan against actual per category, and checks your account balances.
+
+Only the current month lives in the cloud. At the end of the month you
+download it and add it to the ledger on your own computer (in progress).
+
 ## What works today
 
 ```

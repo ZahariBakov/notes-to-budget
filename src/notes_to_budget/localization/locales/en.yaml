@@ -44,6 +44,57 @@ notes:
     day_out_of_order_newest_first: "The day {day} is out of order: the days should go from the newest to the oldest. Is the date right?"
     day_out_of_order_oldest_first: "The day {day} is out of order: the days should go from the oldest to the newest. Is the date right?"
 
+form_script:
+  written: "The script for your Google Form is written to: {file}"
+  next_steps: |-
+    To create the form (once):
+      1. Open https://script.google.com and start a new project.
+      2. Replace everything in the editor with the contents of the file above.
+      3. Choose the function createBudgetForm and press Run.
+      4. Allow the script to create a form and a spreadsheet in your own account.
+      5. The links to the new form and spreadsheet are in the log and on the first sheet.
+    Add the form to the home screen of your phone and it works like an app.
+
+form:
+  formTitle: "Budget - new entry"
+  formDescription: "Type the amount and choose a category. The entry goes straight into the month sheet."
+  spreadsheetTitle: "Budget - current month"
+  saved: "Saved."
+  amount: "Amount"
+  amountHelp: "Write a minus for money that came back or was taken out of savings, for example -20."
+  amountMustBeNumber: "Write a number, for example 12 or 12.50"
+  category: "Category"
+  account: "Account"
+  description: "Description (optional)"
+  toAccount: "To account"
+  toAccountHelp: "Only for a transfer between your own accounts."
+  oneOff: "One-off"
+  oneOffYes: "This is a one-off, leave it out of the averages"
+  date: "Date"
+  dateHelp: "Leave empty for today."
+  transferChoice: "Transfer between accounts"
+  monthSheet: "Month"
+  balancesSheet: "Balances"
+  settingsSheet: "Settings"
+  group: "Group"
+  kind: "Kind"
+  signForAccount: "Sign for the account"
+  plan: "Plan"
+  planHelp: "Write your plan for each category in the green cells."
+  actual: "Actual"
+  remaining: "Remaining"
+  income: "Income"
+  expenses: "Expenses"
+  savedAndInvested: "Saved and invested"
+  left: "Left"
+  startOfMonth: "At the start of the month"
+  expected: "Expected now"
+  actualNow: "Really now"
+  difference: "Difference"
+  balancesHelp: "Write what each account held at the start of the month. Once a week write what it really holds now: the difference should be 0. If it is not, an entry is missing or wrong."
+  linkToForm: "The form"
+  linkToSpreadsheet: "The spreadsheet"
+
 types:
   expense: "expense"
   income: "income"
