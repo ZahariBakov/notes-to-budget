@@ -36,6 +36,7 @@ FORM_LABEL_NAMES = (
     "date",
     "dateHelp",
     "monthSheet",
+    "answersSheet",
     "balancesSheet",
     "settingsSheet",
     "group",

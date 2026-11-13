@@ -33,19 +33,26 @@ function createBudgetForm() {
         '(create_budget_form.gs in your data folder) instead of this one.');
   }
   const labels = SETUP.labels;
-  const spreadsheet = SpreadsheetApp.create(labels.spreadsheetTitle);
+  const newSpreadsheet = SpreadsheetApp.create(labels.spreadsheetTitle);
+  // Remember the empty first sheet now: linking the form adds the answers
+  // sheet in front of it, and the summary must not be written over the answers.
+  const monthSheetId = newSpreadsheet.getSheets()[0].getSheetId();
   const form = createForm(labels);
 
-  form.setDestination(FormApp.DestinationType.SPREADSHEET, spreadsheet.getId());
-  const answersSheet = waitForAnswersSheet(spreadsheet.getId());
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, newSpreadsheet.getId());
+  const answersSheet = waitForAnswersSheet(newSpreadsheet.getId());
+  answersSheet.setName(labels.answersSheet);
   const answers = "'" + answersSheet.getName().replace(/'/g, "''") + "'!";
 
-  const separator = findArgumentSeparator(spreadsheet);
+  // Open the spreadsheet again, so the list of sheets includes the answers.
+  const spreadsheet = SpreadsheetApp.openById(newSpreadsheet.getId());
+  const monthSheet = findSheetById(spreadsheet, monthSheetId);
+  const separator = findArgumentSeparator(monthSheet);
   const settingsSheet = writeSettingsSheet(spreadsheet, labels);
-  const monthSheet = spreadsheet.getSheets()[0];
   writeMonthSheet(monthSheet, labels, answers, separator, form);
   writeBalancesSheet(spreadsheet, labels, answers, separator, settingsSheet.getName());
   spreadsheet.setActiveSheet(monthSheet);
+  spreadsheet.moveActiveSheet(1);
 
   Logger.log(labels.linkToForm + ': ' + form.getPublishedUrl());
   Logger.log(labels.linkToSpreadsheet + ': ' + spreadsheet.getUrl());
@@ -102,8 +109,18 @@ function waitForAnswersSheet(spreadsheetId) {
 }
 
 /** Some languages separate the parts of a formula with ";" and others with ",". */
-function findArgumentSeparator(spreadsheet) {
-  const testCell = spreadsheet.getSheets()[0].getRange('Z1');
+function findSheetById(spreadsheet, sheetId) {
+  const sheets = spreadsheet.getSheets();
+  for (let index = 0; index < sheets.length; index++) {
+    if (sheets[index].getSheetId() === sheetId) {
+      return sheets[index];
+    }
+  }
+  throw new Error('The sheet for the month summary was not found. Run the function again.');
+}
+
+function findArgumentSeparator(emptySheet) {
+  const testCell = emptySheet.getRange('Z1');
   testCell.setFormula('=SUM(1;2)');
   SpreadsheetApp.flush();
   const worksWithSemicolon = testCell.getValue() === 3;
@@ -124,9 +141,19 @@ function writeSettingsSheet(spreadsheet, labels) {
   return sheet;
 }
 
+/**
+ * A whole column of the answers sheet, such as 'Answers'!$B:$B.
+ *
+ * Whole columns are used on purpose: every new answer is inserted as a
+ * new row, which would push a range like B2:B down and past the answer.
+ */
+function wholeColumn(answers, column) {
+  return answers + '$' + column + ':$' + column;
+}
+
 function writeMonthSheet(sheet, labels, answers, separator, form) {
-  const amounts = answers + '$' + AMOUNT_COLUMN + '$2:$' + AMOUNT_COLUMN;
-  const categories = answers + '$' + CATEGORY_COLUMN + '$2:$' + CATEGORY_COLUMN;
+  const amounts = wholeColumn(answers, AMOUNT_COLUMN);
+  const categories = wholeColumn(answers, CATEGORY_COLUMN);
   const money = '#,##0.00 "' + SETUP.currencySymbol + '"';
 
   sheet.setName(labels.monthSheet);
@@ -189,11 +216,14 @@ function sumOfRows(rows) {
 function writeBalancesSheet(spreadsheet, labels, answers, separator, settingsSheetName) {
   const sheet = spreadsheet.insertSheet(labels.balancesSheet);
   const money = '#,##0.00 "' + SETUP.currencySymbol + '"';
-  const amounts = answers + '$' + AMOUNT_COLUMN + '$2:$' + AMOUNT_COLUMN;
-  const categories = answers + '$' + CATEGORY_COLUMN + '$2:$' + CATEGORY_COLUMN;
-  const accounts = answers + '$' + ACCOUNT_COLUMN + '$2:$' + ACCOUNT_COLUMN;
-  const toAccounts = answers + '$' + TO_ACCOUNT_COLUMN + '$2:$' + TO_ACCOUNT_COLUMN;
-  const settings = "'" + settingsSheetName.replace(/'/g, "''") + "'!$A:$D";
+  const amounts = wholeColumn(answers, AMOUNT_COLUMN);
+  const categories = wholeColumn(answers, CATEGORY_COLUMN);
+  const accounts = wholeColumn(answers, ACCOUNT_COLUMN);
+  const toAccounts = wholeColumn(answers, TO_ACCOUNT_COLUMN);
+  const settings = "'" + settingsSheetName.replace(/'/g, "''") + "'!";
+  const lastSettingsRow = SETUP.categories.length + 1;
+  const categoryNames = settings + '$A$2:$A$' + lastSettingsRow;
+  const categorySigns = settings + '$D$2:$D$' + lastSettingsRow;
 
   const header = [labels.account, labels.startOfMonth, labels.expected, labels.actualNow,
     labels.difference];
@@ -208,13 +238,14 @@ function writeBalancesSheet(spreadsheet, labels, answers, separator, settingsShe
     sheet.getRange(row, 1).setValue(account.label);
     sheet.getRange(row, 2).setBackground('#c8e6c9');
     sheet.getRange(row, 4).setBackground('#c8e6c9');
-    // start + every entry of this account with the sign of its category
-    //       + transfers that arrive in this account
+    // start
+    //   + for every category: (what this account has in it) x (the sign of the category)
+    //   + transfers that arrive in this account
     sheet.getRange(row, 3).setFormula(
         '=B' + row +
-        '+SUM(ARRAYFORMULA(IF(' + accounts + '=$A' + row + separator +
-        amounts + '*IFERROR(VLOOKUP(' + categories + separator + settings + separator + '4' +
-        separator + 'FALSE)' + separator + '0)' + separator + '0)))' +
+        '+SUMPRODUCT(' + categorySigns + separator +
+        'SUMIFS(' + amounts + separator + accounts + separator + '$A' + row + separator +
+        categories + separator + categoryNames + '))' +
         '+SUMIF(' + toAccounts + separator + '$A' + row + separator + amounts + ')');
     sheet.getRange(row, 5).setFormula(
         '=IF(D' + row + '=""' + separator + '""' + separator + 'D' + row + '-C' + row + ')');

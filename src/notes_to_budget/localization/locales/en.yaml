@@ -74,6 +74,7 @@ form:
   dateHelp: "Leave empty for today."
   transferChoice: "Transfer between accounts"
   monthSheet: "Month"
+  answersSheet: "Entries"
   balancesSheet: "Balances"
   settingsSheet: "Settings"
   group: "Group"

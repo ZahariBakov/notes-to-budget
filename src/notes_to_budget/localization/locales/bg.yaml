@@ -74,6 +74,7 @@ form:
   dateHelp: "Остави празно за днес."
   transferChoice: "Прехвърляне между сметки"
   monthSheet: "Месец"
+  answersSheet: "Записи"
   balancesSheet: "Наличности"
   settingsSheet: "Настройки"
   group: "Група"
