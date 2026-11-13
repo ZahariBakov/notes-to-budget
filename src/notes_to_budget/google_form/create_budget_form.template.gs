@@ -48,9 +48,8 @@ function createBudgetForm() {
   const spreadsheet = SpreadsheetApp.openById(newSpreadsheet.getId());
   const monthSheet = findSheetById(spreadsheet, monthSheetId);
   const separator = findArgumentSeparator(monthSheet);
-  const settingsSheet = writeSettingsSheet(spreadsheet, labels);
   writeMonthSheet(monthSheet, labels, answers, separator, form);
-  writeBalancesSheet(spreadsheet, labels, answers, separator, settingsSheet.getName());
+  writeBalancesSheet(spreadsheet, labels, answers, separator);
   spreadsheet.setActiveSheet(monthSheet);
   spreadsheet.moveActiveSheet(1);
 
@@ -128,19 +127,6 @@ function findArgumentSeparator(emptySheet) {
   return worksWithSemicolon ? ';' : ',';
 }
 
-/** A list of the categories with their kind; the other sheets look things up here. */
-function writeSettingsSheet(spreadsheet, labels) {
-  const sheet = spreadsheet.insertSheet(labels.settingsSheet);
-  const rows = [[labels.category, labels.group, labels.kind, labels.signForAccount]];
-  SETUP.categories.forEach(function (category) {
-    rows.push([category.name, category.group, category.kind, category.signForAccount]);
-  });
-  sheet.getRange(1, 1, rows.length, 4).setValues(rows);
-  sheet.getRange('A1:D1').setFontWeight('bold');
-  sheet.autoResizeColumns(1, 4);
-  return sheet;
-}
-
 /**
  * A whole column of the answers sheet, such as 'Answers'!$B:$B.
  *
@@ -213,17 +199,16 @@ function sumOfRows(rows) {
 }
 
 /** Compares what the entries say each account should hold with what it really holds. */
-function writeBalancesSheet(spreadsheet, labels, answers, separator, settingsSheetName) {
+function writeBalancesSheet(spreadsheet, labels, answers, separator) {
   const sheet = spreadsheet.insertSheet(labels.balancesSheet);
   const money = '#,##0.00 "' + SETUP.currencySymbol + '"';
   const amounts = wholeColumn(answers, AMOUNT_COLUMN);
   const categories = wholeColumn(answers, CATEGORY_COLUMN);
   const accounts = wholeColumn(answers, ACCOUNT_COLUMN);
   const toAccounts = wholeColumn(answers, TO_ACCOUNT_COLUMN);
-  const settings = "'" + settingsSheetName.replace(/'/g, "''") + "'!";
-  const lastSettingsRow = SETUP.categories.length + 1;
-  const categoryNames = settings + '$A$2:$A$' + lastSettingsRow;
-  const categorySigns = settings + '$D$2:$D$' + lastSettingsRow;
+  const incomeCategoryNames = SETUP.categories
+      .filter(function (category) { return category.kind === 'income'; })
+      .map(function (category) { return category.name; });
 
   const header = [labels.account, labels.startOfMonth, labels.expected, labels.actualNow,
     labels.difference];
@@ -238,15 +223,21 @@ function writeBalancesSheet(spreadsheet, labels, answers, separator, settingsShe
     sheet.getRange(row, 1).setValue(account.label);
     sheet.getRange(row, 2).setBackground('#c8e6c9');
     sheet.getRange(row, 4).setBackground('#c8e6c9');
-    // start
-    //   + for every category: (what this account has in it) x (the sign of the category)
-    //   + transfers that arrive in this account
+    // Every entry of an account takes money out of it, except income,
+    // which puts money in. So:
+    //   start - (all entries of the account) + 2 x (its income entries)
+    //         + transfers that arrive in the account
+    // Only plain SUMIF and SUMIFS are used; they work in every spreadsheet.
+    const thisAccount = '$A' + row;
+    const incomeOfThisAccount = incomeCategoryNames.map(function (incomeCategoryName) {
+      return 'SUMIFS(' + amounts + separator + accounts + separator + thisAccount + separator +
+          categories + separator + '"' + incomeCategoryName.replace(/"/g, '""') + '")';
+    });
     sheet.getRange(row, 3).setFormula(
         '=B' + row +
-        '+SUMPRODUCT(' + categorySigns + separator +
-        'SUMIFS(' + amounts + separator + accounts + separator + '$A' + row + separator +
-        categories + separator + categoryNames + '))' +
-        '+SUMIF(' + toAccounts + separator + '$A' + row + separator + amounts + ')');
+        '-SUMIF(' + accounts + separator + thisAccount + separator + amounts + ')' +
+        '+2*(' + (incomeOfThisAccount.join('+') || '0') + ')' +
+        '+SUMIF(' + toAccounts + separator + thisAccount + separator + amounts + ')');
     sheet.getRange(row, 5).setFormula(
         '=IF(D' + row + '=""' + separator + '""' + separator + 'D' + row + '-C' + row + ')');
     row++;

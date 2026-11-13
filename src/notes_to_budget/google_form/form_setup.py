@@ -13,11 +13,6 @@ from notes_to_budget.localization.translator import Translator
 
 SEPARATOR_BETWEEN_ACCOUNT_CODE_AND_NAME = " – "
 
-# What an entry does to the account it is written for: income adds money,
-# everything else takes money away (a negative amount turns that around).
-SIGN_THAT_ADDS_TO_THE_ACCOUNT = 1
-SIGN_THAT_TAKES_FROM_THE_ACCOUNT = -1
-
 FORM_LABEL_NAMES = (
     "formTitle",
     "formDescription",
@@ -38,10 +33,7 @@ FORM_LABEL_NAMES = (
     "monthSheet",
     "answersSheet",
     "balancesSheet",
-    "settingsSheet",
     "group",
-    "kind",
-    "signForAccount",
     "plan",
     "planHelp",
     "actual",
@@ -112,12 +104,4 @@ def _list_categories(configuration: Configuration, translator: Translator) -> li
 
 
 def _category(name: str, group: str, kind: TransactionType) -> dict[str, Any]:
-    adds_money = kind is TransactionType.INCOME
-    return {
-        "name": name,
-        "group": group,
-        "kind": str(kind),
-        "signForAccount": SIGN_THAT_ADDS_TO_THE_ACCOUNT
-        if adds_money
-        else SIGN_THAT_TAKES_FROM_THE_ACCOUNT,
-    }
+    return {"name": name, "group": group, "kind": str(kind)}

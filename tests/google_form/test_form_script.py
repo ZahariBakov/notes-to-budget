@@ -41,18 +41,15 @@ def test_the_form_offers_expenses_first_then_income_savings_and_a_transfer(engli
     ]
 
 
-def test_every_choice_knows_its_kind_and_what_it_does_to_the_account(english_setup):
+def test_every_choice_knows_its_kind_and_group(english_setup):
     by_name = {category["name"]: category for category in english_setup["categories"]}
 
     assert by_name["Groceries"]["kind"] == "expense"
     assert by_name["Groceries"]["group"] == "Everyday"
-    assert by_name["Groceries"]["signForAccount"] == -1
     assert by_name["Salary"]["kind"] == "income"
-    assert by_name["Salary"]["signForAccount"] == 1
     assert by_name["Savings"]["kind"] == "saving"
     assert by_name["Investments"]["kind"] == "investment"
     assert by_name["Transfer between accounts"]["kind"] == "transfer"
-    assert by_name["Transfer between accounts"]["signForAccount"] == -1
 
 
 def test_accounts_are_shown_with_code_and_name_and_know_if_they_are_reconciled(english_setup):
