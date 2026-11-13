@@ -13,8 +13,9 @@ from notes_to_budget.command_line.check_command import add_check_command
 from notes_to_budget.command_line.console_output import make_console_output_safe
 from notes_to_budget.command_line.init_command import add_init_command
 from notes_to_budget.command_line.message_language import choose_message_language
-from notes_to_budget.configuration.configuration_error import ConfigurationError
+from notes_to_budget.command_line.read_notes_command import add_read_notes_command
 from notes_to_budget.localization.translator import Translator
+from notes_to_budget.user_facing_error import UserFacingError
 
 PROGRAM_NAME = "notes-to-budget"
 EXIT_CODE_SUCCESS = 0
@@ -35,6 +36,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(title="commands", metavar="<command>")
     add_init_command(commands)
     add_check_command(commands)
+    add_read_notes_command(commands)
     return parser
 
 
@@ -50,7 +52,7 @@ def main(command_line_arguments: Sequence[str] | None = None) -> int:
 
     try:
         return arguments.run_command(arguments)
-    except ConfigurationError as problem:
+    except UserFacingError as problem:
         translator = Translator(choose_message_language(arguments, os.environ))
         print(translator.translate(problem.message_key, **problem.details), file=sys.stderr)
         return EXIT_CODE_PROBLEM

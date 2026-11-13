@@ -14,7 +14,12 @@ workbook, and answer questions only about the entries that are unclear.
 ```
 notes-to-budget init my-budget --language en    # a data folder with starter settings
 notes-to-budget check --data-folder my-budget   # are my settings valid?
+notes-to-budget read-notes examples/en/notes/March-2026.txt --data-folder my-budget --show-entries
 ```
+
+`read-notes` shows what the program understands in a notes file and lists
+every line it could not read, with the line number and the reason. It changes
+nothing. See [examples](examples/README.md) for the notes format.
 
 `init` gives you categories, accounts and rules to start from; edit the files
 in `my-budget/config` to match your own life. `check` reads them and explains

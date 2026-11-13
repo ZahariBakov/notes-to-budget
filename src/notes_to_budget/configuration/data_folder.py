@@ -35,6 +35,10 @@ class DataFolder:
     def accounts_file(self) -> Path:
         return self.configuration_folder / "accounts.yaml"
 
+    @property
+    def notes_format_file(self) -> Path:
+        return self.configuration_folder / "notes_format.yaml"
+
     def folder_named(self, folder_name: str) -> Path:
         return self.root / folder_name
 
