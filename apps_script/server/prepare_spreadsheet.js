@@ -10,20 +10,21 @@
 function prepareSpreadsheet() {
   const ui = SpreadsheetApp.getUi();
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const isFirstTime = !documentProperties().getProperty(PROPERTY_YEAR);
+  const isFirstTime = !isPrepared();
 
   if (isFirstTime) {
     if (!hasPersonalSettings()) {
       ui.alert(currentTexts().missingPersonalSettings);
       return;
     }
-    documentProperties().setProperties({
+    appProperties().setProperties({
       [PROPERTY_LANGUAGE]: PERSONAL_SETTINGS.language,
       [PROPERTY_CURRENCY_SYMBOL]: PERSONAL_SETTINGS.currencySymbol,
       [PROPERTY_YEAR]: String(new Date().getFullYear()),
     });
     spreadsheet.setSpreadsheetTimeZone(Session.getScriptTimeZone());
   }
+  appProperties().setProperty(PROPERTY_SPREADSHEET_ID, spreadsheet.getId());
   const texts = currentTexts();
   useLocaleOfLanguage(spreadsheet, texts);
   const sheetsBefore = spreadsheet.getSheets();
@@ -34,6 +35,7 @@ function prepareSpreadsheet() {
       function (sheet) { prepareChecksSheet(sheet, texts); });
   const settingsSheet = findOrCreateSheet(spreadsheet, 'settings', texts.settingsSheet,
       function (sheet) { fillSettingsSheet(sheet, texts, startingSettings(texts)); });
+  addIconColumnIfMissing(settingsSheet, texts);
 
   const settings = readSettings(settingsSheet, texts);
   const separator = findArgumentSeparator(entriesSheet);

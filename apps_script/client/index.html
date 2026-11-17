@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#0f766e">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+    <?!= include('client/styles'); ?>
+  </head>
+  <body>
+    <div id="loading" class="loading"><div class="spinner"></div></div>
+
+    <div id="screen" class="screen" hidden>
+      <header class="top">
+        <span id="monthName" class="month-name"></span>
+        <span id="monthSummary" class="month-summary"></span>
+      </header>
+
+      <main>
+        <section class="amount-card">
+          <div class="amount-row">
+            <button id="signButton" class="sign-button" type="button">+</button>
+            <input id="amount" class="amount" inputmode="decimal" autocomplete="off"
+                   placeholder="0">
+            <span id="currency" class="currency"></span>
+          </div>
+          <input id="description" class="description" autocomplete="off">
+        </section>
+
+        <section>
+          <h2 id="categoryLabel" class="label"></h2>
+          <div id="frequentCategories" class="tiles"></div>
+          <button id="toggleAllCategories" class="text-button" type="button"></button>
+          <div id="allCategories" class="all-categories" hidden></div>
+        </section>
+
+        <section>
+          <h2 id="accountLabel" class="label"></h2>
+          <div id="accounts" class="chips"></div>
+        </section>
+
+        <section id="toAccountSection" hidden>
+          <h2 id="toAccountLabel" class="label"></h2>
+          <div id="toAccounts" class="chips"></div>
+        </section>
+
+        <details class="options">
+          <summary id="moreOptions"></summary>
+          <div class="options-body">
+            <input id="date" class="date" type="date">
+            <label class="check">
+              <input id="oneOff" type="checkbox">
+              <span id="oneOffLabel"></span>
+            </label>
+          </div>
+        </details>
+      </main>
+
+      <footer class="bottom">
+        <p id="message" class="message" hidden></p>
+        <button id="saveButton" class="save-button" type="button"></button>
+        <p id="categoryStatus" class="category-status"></p>
+      </footer>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <?!= include('client/script'); ?>
+  </body>
+</html>

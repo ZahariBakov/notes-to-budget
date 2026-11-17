@@ -7,17 +7,20 @@
 
 const SETTINGS_HEADER_ROW = 3;
 const SETTINGS_FIRST_ROW = 4;
-const CATEGORIES_FIRST_COLUMN = 1;  // A: name, B: group, C: kind
+const CATEGORIES_FIRST_COLUMN = 1;  // A: name, B: group, C: kind, D: icon
+const CATEGORY_ICON_COLUMN = 4;
 const ACCOUNTS_FIRST_COLUMN = 5;    // E: code, F: name, G: checked, H: credit card
 
 function fillSettingsSheet(sheet, texts, personalSettings) {
   sheet.getRange('A1').setValue(texts.settingsHelp).setFontStyle('italic');
 
-  writeSettingsHeader(sheet, CATEGORIES_FIRST_COLUMN, [texts.category, texts.group, texts.kind]);
+  writeSettingsHeader(sheet, CATEGORIES_FIRST_COLUMN,
+      [texts.category, texts.group, texts.kind, texts.icon]);
   const categoryRows = personalSettings.categories.map(function (category) {
-    return [category.name, groupOf(category, texts), texts.kinds[category.kind]];
+    return [category.name, groupOf(category, texts), texts.kinds[category.kind],
+      suggestIcon(category.name, category.kind)];
   });
-  sheet.getRange(SETTINGS_FIRST_ROW, CATEGORIES_FIRST_COLUMN, categoryRows.length, 3)
+  sheet.getRange(SETTINGS_FIRST_ROW, CATEGORIES_FIRST_COLUMN, categoryRows.length, 4)
       .setValues(categoryRows);
   const kindChoices = SpreadsheetApp.newDataValidation()
       .requireValueInList(Object.keys(texts.kinds).map(function (kind) {
@@ -36,8 +39,25 @@ function fillSettingsSheet(sheet, texts, personalSettings) {
       .setValues(accountRows);
   sheet.getRange(SETTINGS_FIRST_ROW, ACCOUNTS_FIRST_COLUMN + 2, 30, 2).insertCheckboxes();
 
-  setColumnWidths(sheet, [190, 170, 110, 30, 60, 190, 100, 110]);
+  setColumnWidths(sheet, [190, 170, 110, 140, 60, 190, 100, 110]);
   sheet.setFrozenRows(SETTINGS_HEADER_ROW);
+}
+
+/** Sheets made before icons existed get the column, filled with suggestions. */
+function addIconColumnIfMissing(sheet, texts) {
+  if (sheet.getRange(SETTINGS_HEADER_ROW, CATEGORY_ICON_COLUMN).getValue() !== '') {
+    return;
+  }
+  writeSettingsHeader(sheet, CATEGORY_ICON_COLUMN, [texts.icon]);
+  const rows = readFilledRows(sheet, CATEGORIES_FIRST_COLUMN, 3);
+  const kindByWord = kindsByWord(texts);
+  const icons = rows.map(function (row) {
+    return [suggestIcon(row[0], kindByWord[String(row[2]).trim()])];
+  });
+  if (icons.length > 0) {
+    sheet.getRange(SETTINGS_FIRST_ROW, CATEGORY_ICON_COLUMN, icons.length, 1).setValues(icons);
+  }
+  sheet.setColumnWidth(CATEGORY_ICON_COLUMN, 140);
 }
 
 /** Income, savings and investments are grouped under names from the app's language. */
@@ -53,24 +73,30 @@ function writeSettingsHeader(sheet, firstColumn, header) {
       .setFontWeight('bold').setBackground('#263238').setFontColor('#ffffff');
 }
 
-/**
- * The categories and accounts as they are in the sheet now.
- *
- * Returns { categories: [{ name, group, kind }], accounts: [{ code, name,
- * reconciled, creditCard }] }, where kind is "expense", "income", "saving"
- * or "investment".
- */
-function readSettings(sheet, texts) {
+function kindsByWord(texts) {
   const kindByWord = {};
   Object.keys(texts.kinds).forEach(function (kind) {
     kindByWord[texts.kinds[kind]] = kind;
   });
+  return kindByWord;
+}
 
-  const categories = readFilledRows(sheet, CATEGORIES_FIRST_COLUMN, 3).map(function (row) {
+/**
+ * The categories and accounts as they are in the sheet now.
+ *
+ * Returns { categories: [{ name, group, kind, icon }], accounts: [{ code,
+ * name, reconciled, creditCard }] }, where kind is "expense", "income",
+ * "saving" or "investment".
+ */
+function readSettings(sheet, texts) {
+  const kindByWord = kindsByWord(texts);
+  const categories = readFilledRows(sheet, CATEGORIES_FIRST_COLUMN, 4).map(function (row) {
+    const kind = kindByWord[String(row[2]).trim()] || 'expense';
     return {
       name: String(row[0]).trim(),
       group: String(row[1]).trim(),
-      kind: kindByWord[String(row[2]).trim()] || 'expense',
+      kind: kind,
+      icon: String(row[3]).trim() || suggestIcon(row[0], kind),
     };
   });
   const accounts = readFilledRows(sheet, ACCOUNTS_FIRST_COLUMN, 4).map(function (row) {

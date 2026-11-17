@@ -1,0 +1,369 @@
+<script>
+  /**
+   * The new entry screen.
+   *
+   * Loads the categories and accounts from the server, lets the person
+   * pick them with one tap, and sends the entry with saveEntry().
+   */
+
+  const state = {
+    data: null,
+    categoryName: '',
+    accountName: '',
+    toAccountName: '',
+    isNegative: false,
+    isSaving: false,
+  };
+
+  const element = function (id) { return document.getElementById(id); };
+
+  google.script.run
+      .withSuccessHandler(start)
+      .withFailureHandler(showLoadingProblem)
+      .getStartData();
+
+  function start(data) {
+    state.data = data;
+    const texts = data.texts;
+    document.title = texts.appTitle;
+    element('currency').textContent = data.currencySymbol;
+    element('description').placeholder = texts.descriptionPlaceholder;
+    element('signButton').title = texts.changeSign;
+    element('categoryLabel').textContent = texts.categoryLabel;
+    element('accountLabel').textContent = texts.accountLabel;
+    element('toAccountLabel').textContent = texts.toAccountLabel;
+    element('toggleAllCategories').textContent = texts.showAllCategories;
+    element('moreOptions').textContent = texts.moreOptions;
+    element('oneOffLabel').textContent = texts.oneOffLabel;
+    element('saveButton').textContent = texts.save;
+
+    showCategories();
+    state.accountName = startingAccountName();
+    showAccounts();
+    showMonth(data.month);
+    resetForm();
+    connectEvents();
+
+    element('loading').hidden = true;
+    element('screen').hidden = false;
+    element('amount').focus();
+  }
+
+  function connectEvents() {
+    const amount = element('amount');
+    amount.addEventListener('input', function () {
+      amount.value = amount.value.replace(/[^0-9.,]/g, '');
+      fitAmountWidth();
+      hideMessage();
+    });
+    element('signButton').addEventListener('click', function () {
+      state.isNegative = !state.isNegative;
+      showSign();
+    });
+    element('toggleAllCategories').addEventListener('click', function () {
+      const allCategories = element('allCategories');
+      allCategories.hidden = !allCategories.hidden;
+      element('toggleAllCategories').textContent = allCategories.hidden
+        ? state.data.texts.showAllCategories : state.data.texts.showFewerCategories;
+    });
+    element('saveButton').addEventListener('click', save);
+  }
+
+  // ----- Categories ---------------------------------------------------------
+
+  function allChoices() {
+    return state.data.categories.concat([state.data.transfer]);
+  }
+
+  function findChoice(name) {
+    return allChoices().find(function (choice) { return choice.name === name; });
+  }
+
+  function showCategories() {
+    const frequent = element('frequentCategories');
+    state.data.frequentCategoryNames.forEach(function (name) {
+      const choice = findChoice(name);
+      if (choice) {
+        frequent.appendChild(categoryTile(choice));
+      }
+    });
+
+    const all = element('allCategories');
+    let currentGroup = null;
+    let groupTiles = null;
+    allChoices().forEach(function (choice) {
+      const groupName = choice.group || state.data.texts.transfer;
+      if (groupName !== currentGroup) {
+        currentGroup = groupName;
+        const heading = document.createElement('p');
+        heading.className = 'group-name';
+        heading.textContent = groupName;
+        all.appendChild(heading);
+        groupTiles = document.createElement('div');
+        groupTiles.className = 'tiles';
+        all.appendChild(groupTiles);
+      }
+      groupTiles.appendChild(categoryTile(choice));
+    });
+  }
+
+  function categoryTile(choice) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'tile kind-' + choice.kind;
+    tile.dataset.name = choice.name;
+    const icon = document.createElement('i');
+    icon.className = 'ti ti-' + choice.icon;
+    icon.setAttribute('aria-hidden', 'true');
+    const name = document.createElement('span');
+    name.textContent = choice.kind === 'transfer' ? state.data.texts.transferTile : choice.name;
+    tile.appendChild(icon);
+    tile.appendChild(name);
+    tile.addEventListener('click', function () { chooseCategory(choice.name); });
+    return tile;
+  }
+
+  function chooseCategory(name) {
+    state.categoryName = state.categoryName === name ? '' : name;
+    document.querySelectorAll('.tile').forEach(function (tile) {
+      tile.classList.toggle('is-selected', tile.dataset.name === state.categoryName);
+    });
+    const isTransfer = state.categoryName === state.data.transfer.name;
+    element('toAccountSection').hidden = !isTransfer;
+    if (isTransfer) {
+      showToAccounts();
+    }
+    showCategoryStatus();
+    hideMessage();
+  }
+
+  // ----- Accounts -----------------------------------------------------------
+
+  function startingAccountName() {
+    const names = state.data.accounts.map(function (account) { return account.name; });
+    if (names.indexOf(state.data.lastAccountName) !== -1) {
+      return state.data.lastAccountName;
+    }
+    return names.length > 0 ? names[0] : '';
+  }
+
+  function showAccounts() {
+    fillChips(element('accounts'), state.data.accounts, state.accountName, function (name) {
+      state.accountName = name;
+      showAccounts();
+      if (!element('toAccountSection').hidden) {
+        showToAccounts();
+      }
+    });
+  }
+
+  function showToAccounts() {
+    const others = state.data.accounts.filter(function (account) {
+      return account.name !== state.accountName;
+    });
+    if (state.toAccountName === state.accountName) {
+      state.toAccountName = '';
+    }
+    fillChips(element('toAccounts'), others, state.toAccountName, function (name) {
+      state.toAccountName = name;
+      showToAccounts();
+    });
+  }
+
+  function fillChips(container, accounts, selectedName, onChoose) {
+    container.innerHTML = '';
+    accounts.forEach(function (account) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (account.name === selectedName ? ' is-selected' : '');
+      chip.textContent = account.name;
+      chip.addEventListener('click', function () {
+        onChoose(account.name);
+        hideMessage();
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  // ----- Month and category status ------------------------------------------
+
+  function showMonth(month) {
+    if (month) {
+      state.data.month = month;
+    }
+    const current = state.data.month;
+    if (!current) {
+      return;
+    }
+    const texts = state.data.texts;
+    element('monthName').textContent = current.name;
+    element('monthSummary').textContent = current.plannedExpenses > 0
+      ? fill(texts.leftThisMonth, { amount: money(current.plannedExpenses - current.expenses) })
+      : fill(texts.spentThisMonth, { amount: money(current.expenses) });
+  }
+
+  /** How far a category is this month; the chosen one, unless another is named. */
+  function showCategoryStatus(categoryName) {
+    const name = categoryName || state.categoryName;
+    const status = element('categoryStatus');
+    const month = state.data.month;
+    const amounts = month && month.categories[name];
+    status.classList.remove('is-over');
+    if (!amounts) {
+      status.textContent = '';
+      return;
+    }
+    const texts = state.data.texts;
+    if (amounts.plan) {
+      status.textContent = fill(texts.categoryWithPlan, {
+        category: name, spent: money(amounts.actual), plan: money(amounts.plan),
+      });
+      status.classList.toggle('is-over', amounts.actual > amounts.plan);
+    } else {
+      status.textContent = fill(texts.categoryWithoutPlan, {
+        category: name, spent: money(amounts.actual),
+      });
+    }
+  }
+
+  // ----- Saving -------------------------------------------------------------
+
+  function save() {
+    if (state.isSaving) {
+      return;
+    }
+    const texts = state.data.texts;
+    const amount = readAmount();
+    if (amount === null) {
+      return showMessage(texts.amountMissing);
+    }
+    if (!state.categoryName) {
+      return showMessage(texts.categoryMissing);
+    }
+    if (!state.accountName) {
+      return showMessage(texts.accountMissing);
+    }
+    const isTransfer = state.categoryName === state.data.transfer.name;
+    if (isTransfer && !state.toAccountName) {
+      return showMessage(texts.toAccountMissing);
+    }
+
+    const entry = {
+      amount: state.isNegative ? -amount : amount,
+      categoryName: state.categoryName,
+      accountName: state.accountName,
+      toAccountName: isTransfer ? state.toAccountName : '',
+      description: element('description').value,
+      oneOff: element('oneOff').checked,
+      date: element('date').value,
+    };
+    setSaving(true);
+    google.script.run
+        .withSuccessHandler(function (month) {
+          setSaving(false);
+          showToast(fill(texts.saved, { amount: money(entry.amount), category: entry.categoryName }));
+          showMonth(month);
+          resetForm();
+          showCategoryStatus(entry.categoryName);
+        })
+        .withFailureHandler(function (problem) {
+          setSaving(false);
+          showMessage(problem.message);
+        })
+        .saveEntry(entry);
+  }
+
+  /** The typed amount as a number, or null if it is not one. Both 12,50 and 12.50 work. */
+  function readAmount() {
+    const written = element('amount').value.trim().replace(',', '.');
+    if (!/^\d+(\.\d{1,2})?$/.test(written)) {
+      return null;
+    }
+    const amount = Number(written);
+    return amount > 0 ? amount : null;
+  }
+
+  function setSaving(isSaving) {
+    state.isSaving = isSaving;
+    const button = element('saveButton');
+    button.disabled = isSaving;
+    button.textContent = isSaving ? state.data.texts.saving : state.data.texts.save;
+  }
+
+  /** Clears what belongs to one entry; the account stays, it is usually the same. */
+  function resetForm() {
+    element('amount').value = '';
+    element('description').value = '';
+    element('oneOff').checked = false;
+    element('date').value = todayAsText();
+    element('toAccountSection').hidden = true;
+    state.isNegative = false;
+    state.toAccountName = '';
+    showSign();
+    fitAmountWidth();
+    chooseCategory('');
+  }
+
+  // ----- Small helpers --------------------------------------------------------
+
+  function showSign() {
+    const button = element('signButton');
+    button.textContent = state.isNegative ? '−' : '+';
+    button.classList.toggle('is-negative', state.isNegative);
+  }
+
+  function fitAmountWidth() {
+    const amount = element('amount');
+    amount.style.width = Math.max(amount.value.length, 1) + 0.6 + 'ch';
+  }
+
+  function money(amount) {
+    const number = new Intl.NumberFormat(state.data.texts.numberLocale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+    return number + ' ' + state.data.currencySymbol;
+  }
+
+  /** fill('{amount} left', { amount: '5' }) gives '5 left'. */
+  function fill(text, values) {
+    return text.replace(/\{(\w+)\}/g, function (whole, name) {
+      return values[name] !== undefined ? values[name] : whole;
+    });
+  }
+
+  function todayAsText() {
+    const today = new Date();
+    const twoDigits = function (number) { return String(number).padStart(2, '0'); };
+    return today.getFullYear() + '-' + twoDigits(today.getMonth() + 1) + '-' +
+        twoDigits(today.getDate());
+  }
+
+  function showMessage(text) {
+    const message = element('message');
+    message.textContent = text;
+    message.hidden = false;
+  }
+
+  function hideMessage() {
+    element('message').hidden = true;
+  }
+
+  let toastTimer = null;
+  function showToast(text) {
+    const toast = element('toast');
+    toast.textContent = text;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.hidden = true; }, 2500);
+  }
+
+  function showLoadingProblem(problem) {
+    element('loading').innerHTML = '';
+    const message = document.createElement('p');
+    message.className = 'message';
+    message.style.margin = '24px';
+    message.textContent = problem.message;
+    element('loading').appendChild(message);
+  }
+</script>
