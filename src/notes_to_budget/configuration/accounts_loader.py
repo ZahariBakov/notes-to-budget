@@ -48,6 +48,9 @@ def _read_account(listed_account: Any, place: str, accounts_file: Path) -> Accou
         also_written_as=read_optional_text_list(
             account_values, "also_written_as", accounts_file, place
         ),
+        is_credit_card=read_optional_yes_or_no(
+            account_values, "credit_card", accounts_file, place, default=False
+        ),
     )
 
 

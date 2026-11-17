@@ -14,3 +14,5 @@ class Account:
     """Position of this account in the balances line of the notes (1 = first)."""
     also_written_as: tuple[str, ...] = ()
     """Other ways the account appears in the notes: words or frequent typos."""
+    is_credit_card: bool = False
+    """Money moved out of this account is owed until it is paid back."""

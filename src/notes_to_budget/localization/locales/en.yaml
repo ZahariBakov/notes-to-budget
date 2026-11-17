@@ -55,6 +55,15 @@ form_script:
       5. The links to the new form and spreadsheet are in the log and on the first sheet.
     Add the form to the home screen of your phone and it works like an app.
 
+app_settings:
+  written: "Your categories and accounts for the phone app are written to: {file}"
+  next_steps: |-
+    Next:
+      1. Put this file in the apps_script folder, next to appsscript.json.
+      2. Upload the app with:  clasp push
+      3. Open your spreadsheet, reload it and choose Budget > Prepare or refresh the spreadsheet.
+    After that your categories live in the Settings sheet; change them there.
+
 form:
   formTitle: "Budget - new entry"
   formDescription: "Type the amount and choose a category. The entry goes straight into the month sheet."

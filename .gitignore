@@ -10,6 +10,11 @@
 /data/
 /my-data/
 
+# Links your copy of the app to your own Google script and account.
+.clasp.json
+.clasprc.json
+personal_settings.js
+
 # Invented sample data is allowed.
 !examples/**
 !tests/fixtures/**

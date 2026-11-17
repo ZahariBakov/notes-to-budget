@@ -45,6 +45,15 @@ def test_an_account_is_not_reconciled_unless_the_settings_say_so(write_settings_
     assert credit_card.balance_position is None
 
 
+def test_an_account_is_a_credit_card_only_when_the_settings_say_so(write_settings_file):
+    catalog = load_changed_accounts(
+        write_settings_file, "name: Credit card", "name: Credit card\n        credit_card: true"
+    )
+
+    assert catalog.find_by_code("CC").is_credit_card
+    assert not catalog.find_by_code("C").is_credit_card
+
+
 def test_the_same_code_for_two_accounts_is_reported(write_settings_file):
     with pytest.raises(ConfigurationError) as problem:
         load_changed_accounts(write_settings_file, "code: CC", "code: C")

@@ -5,6 +5,7 @@
 # balance_position  - which number it is in the balances line
 #                     ("14 - 120 / 340 / 1500": 1 = cash, 2 = wallet, 3 = card).
 # also_written_as   - other ways you write it: words or frequent typos.
+# credit_card       - true for a credit card: the app reminds you what is still owed.
 
 accounts:
   - code: C
@@ -28,4 +29,5 @@ accounts:
   - code: CC
     name: Credit card
     reconciled: false
+    credit_card: true
     also_written_as: [credit, credit card]
