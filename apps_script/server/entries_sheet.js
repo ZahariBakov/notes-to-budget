@@ -32,6 +32,22 @@ function prepareEntriesSheet(sheet, texts) {
   setColumnWidths(sheet, [95, 100, 190, 150, 150, 260, 95, 135, 110]);
 }
 
+/**
+ * The first row after the last filled date. getLastRow() would not do: the
+ * one-off column has a checkbox on every row, and an empty checkbox still
+ * counts as filled, so new rows would land at the very bottom.
+ */
+function firstFreeRow(sheet) {
+  const dates = sheet.getRange(1, ENTRY_DATE_COLUMN, sheet.getMaxRows(), 1).getValues();
+  let lastFilled = 1;
+  dates.forEach(function (row, index) {
+    if (row[0] !== '') {
+      lastFilled = index + 1;
+    }
+  });
+  return lastFilled + 1;
+}
+
 /** A bold dark header row that stays in place while scrolling. */
 function writeHeaderRow(sheet, header) {
   sheet.getRange(1, 1, 1, header.length).setValues([header])

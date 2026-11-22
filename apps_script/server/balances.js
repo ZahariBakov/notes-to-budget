@@ -5,6 +5,10 @@
  * after it are those dated after the check's day, and those dated the same
  * day but entered after the check. An entry dated earlier but entered later
  * was already in the money that was counted, so it does not count again.
+ *
+ * Rows typed into the sheets by hand have no time. A check without one is
+ * the morning balance of its day; an entry without one counts as entered at
+ * the end of its day. So all of that day's entries come after that check.
  */
 
 const MAXIMUM_ENTRIES_SHOWN_SINCE_CHECK = 15;
@@ -55,7 +59,9 @@ function readAllChecks(checksSheet) {
           dayKey: dayKey(date),
           account: String(row[CHECK_ACCOUNT_COLUMN - 1]),
           actual: row[CHECK_ACTUAL_COLUMN - 1],
-          enteredAt: enteredAt instanceof Date ? enteredAt : endOfDay(date),
+          // A check typed by hand has no time: it is the morning balance of its day,
+          // so every entry of that day comes after it.
+          enteredAt: enteredAt instanceof Date ? enteredAt : startOfDay(date),
         };
       })
       .sort(function (first, second) { return first.enteredAt - second.enteredAt; });
@@ -165,6 +171,10 @@ function kindsOfCategories(settings) {
 /** A day as text that sorts in order, for example 2026-11-22, in the script's time zone. */
 function dayKey(date) {
   return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 function endOfDay(date) {

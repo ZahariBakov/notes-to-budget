@@ -16,7 +16,9 @@ function writeMonthSheet(sheet, monthNumber, settings, entriesSheet, separator, 
   clearSheet(sheet);
 
   const year = budgetYear();
-  sheet.getRange('A1').setValue(texts.monthNames[monthNumber - 1] + ' ' + year)
+  // Plain text, or the sheet reads "януари 2026" as a date.
+  sheet.getRange('A1').setNumberFormat('@')
+      .setValue(texts.monthNames[monthNumber - 1] + ' ' + year)
       .setFontSize(16).setFontWeight('bold');
   sheet.getRange('G1').setFormula('=' + call('DATE', [year, monthNumber, 1], separator));
   sheet.getRange('G2').setFormula('=' + call('EOMONTH', ['G1', 0], separator));

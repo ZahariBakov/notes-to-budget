@@ -74,7 +74,7 @@ function saveEntry(entry) {
   lock.waitLock(20000);
   try {
     const entriesSheet = findSheetByRole(spreadsheet, 'entries');
-    const row = Math.max(entriesSheet.getLastRow(), 1) + 1;
+    const row = firstFreeRow(entriesSheet);
     entriesSheet.getRange(row, 1, 1, ENTRY_COLUMN_COUNT).setValues([[
       checkedEntry.date,
       checkedEntry.amount,
@@ -144,7 +144,7 @@ function saveChecks(balances) {
       const difference = expected === '' ? '' : roundToCents(actual - expected);
       return [today, balance.accountName, actual, expected, difference, now];
     });
-    const firstRow = Math.max(checksSheet.getLastRow(), 1) + 1;
+    const firstRow = firstFreeRow(checksSheet);
     checksSheet.getRange(firstRow, 1, rows.length, rows[0].length).setValues(rows);
     SpreadsheetApp.flush();
   } finally {

@@ -15,7 +15,7 @@ function writeYearSheet(sheet, settings, entriesSheet, separator, texts) {
   const year = budgetYear();
   const totalLetter = columnLetter(YEAR_TOTAL_COLUMN);
 
-  sheet.getRange('A1').setValue(texts.yearSheet + ' ' + year)
+  sheet.getRange('A1').setNumberFormat('@').setValue(texts.yearSheet + ' ' + year)
       .setFontSize(16).setFontWeight('bold');
   sheet.getRange(YEAR_MONTHS_SO_FAR_ROW, 1).setValue(texts.monthsSoFar);
   sheet.getRange(YEAR_MONTHS_SO_FAR_ROW, 2).setFormula('=' + call('IF', [
