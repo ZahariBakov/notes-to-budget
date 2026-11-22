@@ -36,17 +36,44 @@
     element('moreOptions').textContent = texts.moreOptions;
     element('oneOffLabel').textContent = texts.oneOffLabel;
     element('saveButton').textContent = texts.save;
+    element('tabEntry').textContent = texts.tabEntry;
+    element('tabCheckName').textContent = texts.tabCheck;
+    element('checkHelp').textContent = texts.checkHelp;
+    element('saveCheckButton').textContent = texts.saveCheck;
 
     showCategories();
     state.accountName = startingAccountName();
     showAccounts();
     showMonth(data.month);
+    showDebts(data.creditCardDebts);
+    showChecks(data.checks);
     resetForm();
     connectEvents();
 
     element('loading').hidden = true;
     element('screen').hidden = false;
-    element('amount').focus();
+    if (isMorningCheckDue()) {
+      showView('check');
+    } else {
+      element('amount').focus();
+    }
+  }
+
+  /** Before noon, until every account is checked, the app opens on the check. */
+  function isMorningCheckDue() {
+    return new Date().getHours() < 12 && hasAccountsToCheckToday();
+  }
+
+  function hasAccountsToCheckToday() {
+    return state.data.checks.some(function (account) { return !account.checkedToday; });
+  }
+
+  function showView(name) {
+    element('entryView').hidden = name !== 'entry';
+    element('checkView').hidden = name !== 'check';
+    element('tabEntry').classList.toggle('is-active', name === 'entry');
+    element('tabCheck').classList.toggle('is-active', name === 'check');
+    window.scrollTo(0, 0);
   }
 
   function connectEvents() {
@@ -67,6 +94,9 @@
         ? state.data.texts.showAllCategories : state.data.texts.showFewerCategories;
     });
     element('saveButton').addEventListener('click', save);
+    element('saveCheckButton').addEventListener('click', saveCheck);
+    element('tabEntry').addEventListener('click', function () { showView('entry'); });
+    element('tabCheck').addEventListener('click', function () { showView('check'); });
   }
 
   // ----- Categories ---------------------------------------------------------
@@ -259,10 +289,12 @@
     };
     setSaving(true);
     google.script.run
-        .withSuccessHandler(function (month) {
+        .withSuccessHandler(function (result) {
           setSaving(false);
           showToast(fill(texts.saved, { amount: money(entry.amount), category: entry.categoryName }));
-          showMonth(month);
+          showMonth(result.month);
+          showDebts(result.creditCardDebts);
+          showChecks(result.checks);
           resetForm();
           showCategoryStatus(entry.categoryName);
         })
@@ -302,6 +334,223 @@
     showSign();
     fitAmountWidth();
     chooseCategory('');
+  }
+
+  // ----- Credit cards -----------------------------------------------------------
+
+  /** A red box for every credit card with money still owed on it. */
+  function showDebts(debts) {
+    const container = element('debts');
+    container.innerHTML = '';
+    debts.forEach(function (debt) {
+      const box = document.createElement('div');
+      box.className = 'debt';
+      const icon = document.createElement('i');
+      icon.className = 'ti ti-credit-card';
+      icon.setAttribute('aria-hidden', 'true');
+      const text = document.createElement('span');
+      text.textContent = fill(state.data.texts.creditCardDebt, {
+        account: debt.name, amount: money(debt.owed),
+      });
+      box.appendChild(icon);
+      box.appendChild(text);
+      container.appendChild(box);
+    });
+  }
+
+  // ----- Morning check ------------------------------------------------------------
+
+  function showChecks(checks) {
+    state.data.checks = checks;
+    element('checkDot').hidden = !hasAccountsToCheckToday();
+    const cards = element('checkCards');
+    cards.innerHTML = '';
+    if (checks.length === 0) {
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = state.data.texts.noCheckedAccounts;
+      cards.appendChild(hint);
+      element('saveCheckButton').hidden = true;
+      return;
+    }
+    checks.forEach(function (account) { cards.appendChild(checkCard(account)); });
+  }
+
+  function checkCard(account) {
+    const texts = state.data.texts;
+    const card = document.createElement('div');
+    card.className = 'check-card';
+
+    const head = document.createElement('div');
+    head.className = 'check-head';
+    const name = document.createElement('span');
+    name.className = 'check-name';
+    name.textContent = account.name;
+    head.appendChild(name);
+    if (account.checkedToday) {
+      const badge = document.createElement('span');
+      badge.className = 'check-badge';
+      badge.textContent = '✓ ' + texts.checkedToday;
+      head.appendChild(badge);
+    }
+    card.appendChild(head);
+
+    const expected = document.createElement('div');
+    expected.className = 'check-expected';
+    expected.textContent = account.expected === null ? texts.firstCheck
+      : fill(texts.shouldHave, { amount: money(account.expected) });
+    card.appendChild(expected);
+
+    const row = document.createElement('div');
+    row.className = 'check-row';
+    const input = document.createElement('input');
+    input.className = 'check-input';
+    input.inputMode = 'decimal';
+    input.autocomplete = 'off';
+    input.placeholder = '0';
+    input.dataset.accountName = account.name;
+    row.appendChild(input);
+    const result = document.createElement('div');
+    result.className = 'check-result';
+    if (account.expected !== null) {
+      const matchButton = document.createElement('button');
+      matchButton.type = 'button';
+      matchButton.className = 'match-button';
+      matchButton.textContent = texts.matches;
+      matchButton.addEventListener('click', function () {
+        input.value = formatPlain(account.expected);
+        showDifference(account, input, result);
+      });
+      row.appendChild(matchButton);
+    }
+    input.addEventListener('input', function () {
+      input.value = input.value.replace(/[^0-9.,-]/g, '');
+      showDifference(account, input, result);
+      element('checkMessage').hidden = true;
+    });
+    card.appendChild(row);
+    card.appendChild(result);
+
+    if (account.expected !== null) {
+      card.appendChild(entriesSinceCheck(account));
+    }
+    return card;
+  }
+
+  function showDifference(account, input, result) {
+    const texts = state.data.texts;
+    const actual = readBalance(input.value);
+    result.className = 'check-result';
+    if (actual === null || account.expected === null) {
+      result.textContent = '';
+      return;
+    }
+    const difference = Math.round((actual - account.expected) * 100) / 100;
+    if (difference === 0) {
+      result.textContent = '✓ ' + texts.exact;
+      result.classList.add('is-exact');
+    } else {
+      result.textContent = fill(difference < 0 ? texts.missing : texts.extra, {
+        amount: money(Math.abs(difference)),
+      });
+      result.classList.add('is-off');
+    }
+  }
+
+  function entriesSinceCheck(account) {
+    const texts = state.data.texts;
+    if (account.entriesSinceCheck.length === 0) {
+      const none = document.createElement('p');
+      none.className = 'since';
+      none.style.color = 'var(--muted)';
+      none.textContent = texts.noEntriesSinceCheck;
+      return none;
+    }
+    const details = document.createElement('details');
+    details.className = 'since';
+    const summary = document.createElement('summary');
+    summary.textContent = fill(texts.entriesSinceCheck, { count: account.entriesSinceCheckCount });
+    details.appendChild(summary);
+    const list = document.createElement('ul');
+    list.className = 'since-list';
+    account.entriesSinceCheck.forEach(function (entry) {
+      const item = document.createElement('li');
+      const what = document.createElement('span');
+      what.textContent = shortDay(entry.dayKey) + '  ' + entry.category +
+          (entry.description ? ' · ' + entry.description : '');
+      const change = document.createElement('span');
+      change.className = 'change';
+      change.textContent = (entry.change > 0 ? '+' : '−') + money(Math.abs(entry.change));
+      item.appendChild(what);
+      item.appendChild(change);
+      list.appendChild(item);
+    });
+    details.appendChild(list);
+    return details;
+  }
+
+  function saveCheck() {
+    if (state.isSaving) {
+      return;
+    }
+    const texts = state.data.texts;
+    const balances = [];
+    let hasUnreadable = false;
+    document.querySelectorAll('.check-input').forEach(function (input) {
+      if (input.value.trim() === '') {
+        return;
+      }
+      const actual = readBalance(input.value);
+      if (actual === null) {
+        hasUnreadable = true;
+        return;
+      }
+      balances.push({ accountName: input.dataset.accountName, actual: actual });
+    });
+    const message = element('checkMessage');
+    if (hasUnreadable || balances.length === 0) {
+      message.textContent = hasUnreadable ? texts.amountMissing : texts.nothingToCheck;
+      message.hidden = false;
+      return;
+    }
+    const button = element('saveCheckButton');
+    state.isSaving = true;
+    button.disabled = true;
+    button.textContent = texts.saving;
+    google.script.run
+        .withSuccessHandler(function (checks) {
+          state.isSaving = false;
+          button.disabled = false;
+          button.textContent = texts.saveCheck;
+          showChecks(checks);
+          showToast(texts.checkSaved);
+        })
+        .withFailureHandler(function (problem) {
+          state.isSaving = false;
+          button.disabled = false;
+          button.textContent = texts.saveCheck;
+          message.textContent = problem.message;
+          message.hidden = false;
+        })
+        .saveChecks(balances);
+  }
+
+  /** A balance as a number: 245,30 or 245.30; it may be 0 or below 0. */
+  function readBalance(written) {
+    const text = written.trim().replace(',', '.');
+    return /^-?\d+(\.\d{1,2})?$/.test(text) ? Number(text) : null;
+  }
+
+  /** 245.3 as the person types it: 245,30 in Bulgarian. */
+  function formatPlain(amount) {
+    return new Intl.NumberFormat(state.data.texts.numberLocale, {
+      minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false,
+    }).format(amount);
+  }
+
+  /** 2026-11-21 as 21.11 */
+  function shortDay(key) {
+    return key.slice(8, 10) + '.' + key.slice(5, 7);
   }
 
   // ----- Small helpers --------------------------------------------------------

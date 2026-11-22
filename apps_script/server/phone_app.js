@@ -31,10 +31,15 @@ function getStartData() {
   }
   const spreadsheet = budgetSpreadsheet();
   const settings = readSettings(findSheetByRole(spreadsheet, 'settings'), texts);
-  const recentEntries = readRecentEntries(findSheetByRole(spreadsheet, 'entries'));
+  const entriesSheet = findSheetByRole(spreadsheet, 'entries');
+  const recentEntries = readRecentEntries(entriesSheet);
+  const allEntries = readAllEntries(entriesSheet);
   const today = new Date();
 
   return {
+    checks: checkOverview(settings, allEntries,
+        readAllChecks(findSheetByRole(spreadsheet, 'checks')), texts.transfer, today),
+    creditCardDebts: creditCardDebts(settings, allEntries, texts.transfer),
     texts: texts,
     currencySymbol: currencySymbol(),
     categories: settings.categories,
@@ -53,7 +58,8 @@ function getStartData() {
  *
  * entry: { amount, categoryName, accountName, toAccountName, description,
  * oneOff, date: 'YYYY-MM-DD' or '' for today }.
- * Returns the month overview after the entry, so the page can show it.
+ * Returns the month overview, the checks and what is owed on credit cards
+ * after the entry, so the page can show them.
  */
 function saveEntry(entry) {
   const texts = currentTexts();
@@ -85,8 +91,68 @@ function saveEntry(entry) {
     lock.releaseLock();
   }
 
-  return monthOverview(spreadsheet, checkedEntry.date.getFullYear(),
-      checkedEntry.date.getMonth() + 1, texts);
+  const allEntries = readAllEntries(findSheetByRole(spreadsheet, 'entries'));
+  return {
+    month: monthOverview(spreadsheet, checkedEntry.date.getFullYear(),
+        checkedEntry.date.getMonth() + 1, texts),
+    checks: checkOverview(settings, allEntries,
+        readAllChecks(findSheetByRole(spreadsheet, 'checks')), texts.transfer, new Date()),
+    creditCardDebts: creditCardDebts(settings, allEntries, texts.transfer),
+  };
+}
+
+/**
+ * Writes the morning check: what each account really holds now.
+ *
+ * balances: [{ accountName, actual }]; accounts left empty are not sent.
+ * Every check is kept as its own row, so the history stays in the sheet.
+ * Returns the checks after saving.
+ */
+function saveChecks(balances) {
+  const texts = currentTexts();
+  if (!isPrepared()) {
+    throw new Error(texts.notPreparedYet);
+  }
+  const spreadsheet = budgetSpreadsheet();
+  const settings = readSettings(findSheetByRole(spreadsheet, 'settings'), texts);
+  const checkedNames = settings.accounts
+      .filter(function (account) { return account.reconciled; })
+      .map(function (account) { return account.name; });
+  const checked = (balances || []).filter(function (balance) {
+    return checkedNames.indexOf(balance.accountName) !== -1 && isFinite(Number(balance.actual)) &&
+        String(balance.actual) !== '';
+  });
+  if (checked.length === 0) {
+    throw new Error(texts.nothingToCheck);
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const entriesSheet = findSheetByRole(spreadsheet, 'entries');
+    const checksSheet = findSheetByRole(spreadsheet, 'checks');
+    const now = new Date();
+    const before = checkOverview(settings, readAllEntries(entriesSheet),
+        readAllChecks(checksSheet), texts.transfer, now);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const rows = checked.map(function (balance) {
+      const actual = roundToCents(Number(balance.actual));
+      const account = before.find(function (overview) {
+        return overview.name === balance.accountName;
+      });
+      const expected = account && account.expected !== null ? account.expected : '';
+      const difference = expected === '' ? '' : roundToCents(actual - expected);
+      return [today, balance.accountName, actual, expected, difference, now];
+    });
+    const firstRow = Math.max(checksSheet.getLastRow(), 1) + 1;
+    checksSheet.getRange(firstRow, 1, rows.length, rows[0].length).setValues(rows);
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+
+  return checkOverview(settings, readAllEntries(findSheetByRole(spreadsheet, 'entries')),
+      readAllChecks(findSheetByRole(spreadsheet, 'checks')), texts.transfer, new Date());
 }
 
 /** Checks the entry again on the server: the page is not the only way to call this. */

@@ -267,6 +267,110 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   }
 
+  .view { flex: 1; display: flex; flex-direction: column; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: 12px 16px 0;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--line);
+  }
+  .tab {
+    flex: 1;
+    position: relative;
+    padding: 9px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .tab.is-active { background: var(--card); color: var(--text); }
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: var(--danger);
+    vertical-align: middle;
+  }
+
+  .debt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--danger);
+    border-radius: var(--radius);
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .debt .ti { font-size: 22px; }
+
+  .hint { margin: 16px 0 4px; font-size: 14px; color: var(--muted); line-height: 1.4; }
+
+  .check-card {
+    margin-top: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+  .check-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .check-name { font-weight: 600; }
+  .check-badge { font-size: 12px; color: var(--income); }
+  .check-expected { margin-top: 4px; font-size: 14px; color: var(--muted); }
+  .check-row { display: flex; gap: 8px; margin-top: 10px; }
+  .check-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--page);
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 600;
+    text-align: right;
+    outline: none;
+  }
+  .check-input:focus { border-color: var(--accent); }
+  .match-button {
+    padding: 0 14px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .check-result { margin-top: 8px; font-size: 14px; min-height: 1.2em; }
+  .check-result.is-exact { color: var(--income); }
+  .check-result.is-off { color: var(--danger); }
+  .since { margin-top: 10px; font-size: 13px; }
+  .since summary { color: var(--accent); cursor: pointer; }
+  .since-list { margin: 8px 0 0; padding: 0; list-style: none; }
+  .since-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .since-list .change { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
   .loading {
     min-height: 100vh;
     display: flex;

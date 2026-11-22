@@ -86,6 +86,24 @@ const TEXTS = {
     notPreparedYet: 'Таблицата още не е подготвена. Отвори я и избери Бюджет > ' +
         'Подготви или обнови таблицата.',
     somethingWentWrong: 'Нещо се обърка: {message}',
+
+    tabEntry: 'Запис',
+    tabCheck: 'Сверка',
+    checkHelp: 'Напиши колко има реално във всяка сметка. Разликата показва дали нещо липсва.',
+    shouldHave: 'Трябва да има {amount}',
+    firstCheck: 'Първа сверка: напиши колко има сега. От нея нататък смятам аз.',
+    checkedToday: 'Сверено днес',
+    matches: 'Съвпада',
+    exact: 'Точно е',
+    missing: 'Липсват {amount}. Има ли незаписан разход?',
+    extra: 'Има {amount} повече. Незаписан приход или върнати пари?',
+    entriesSinceCheck: 'Записи от последната сверка ({count})',
+    noEntriesSinceCheck: 'Няма записи от последната сверка.',
+    saveCheck: 'Запиши сверката',
+    checkSaved: 'Сверката е записана',
+    nothingToCheck: 'Напиши поне една наличност.',
+    noCheckedAccounts: 'Няма сметки за сверка. Отметни „Сверява се“ в листа „Настройки“.',
+    creditCardDebt: '{account}: дължиш {amount}',
   },
 
   en: {
@@ -171,5 +189,23 @@ const TEXTS = {
     notPreparedYet: 'The spreadsheet is not prepared yet. Open it and choose Budget > ' +
         'Prepare or refresh the spreadsheet.',
     somethingWentWrong: 'Something went wrong: {message}',
+
+    tabEntry: 'Entry',
+    tabCheck: 'Check',
+    checkHelp: 'Write what each account really holds. The difference shows if something is missing.',
+    shouldHave: 'Should hold {amount}',
+    firstCheck: 'First check: write what it holds now. From then on the app counts.',
+    checkedToday: 'Checked today',
+    matches: 'Matches',
+    exact: 'Exactly right',
+    missing: '{amount} missing. Is an expense not written down?',
+    extra: '{amount} more. Income or money back not written down?',
+    entriesSinceCheck: 'Entries since the last check ({count})',
+    noEntriesSinceCheck: 'No entries since the last check.',
+    saveCheck: 'Save the check',
+    checkSaved: 'Check saved',
+    nothingToCheck: 'Write at least one balance.',
+    noCheckedAccounts: 'No account is checked. Tick "Checked" in the Settings sheet.',
+    creditCardDebt: '{account}: {amount} owed',
   },
 };
