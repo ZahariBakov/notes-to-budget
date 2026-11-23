@@ -1,8 +1,10 @@
 /**
  * The phone app: the page it shows and the calls the page makes.
  *
- * The page (client/index.html) calls getStartData() when it opens and
- * saveEntry() for every new entry, through google.script.run.
+ * The page (client/index.html) calls getStartData() when it opens,
+ * saveEntry() for every new entry and saveChecks() for the morning check,
+ * through google.script.run. The month screen and the list of entries are
+ * in month_entries.js.
  */
 
 const FREQUENT_CATEGORY_COUNT = 8;
@@ -50,6 +52,7 @@ function getStartData() {
     lastAccountName: recentEntries.length > 0 ? recentEntries[recentEntries.length - 1].account
       : '',
     month: monthOverview(spreadsheet, today.getFullYear(), today.getMonth() + 1, texts),
+    year: budgetYear(),
   };
 }
 
@@ -75,6 +78,7 @@ function saveEntry(entry) {
   try {
     const entriesSheet = findSheetByRole(spreadsheet, 'entries');
     const row = firstFreeRow(entriesSheet);
+    makeRoomForRow(entriesSheet, row, ENTRY_ONE_OFF_COLUMN);
     entriesSheet.getRange(row, 1, 1, ENTRY_COLUMN_COUNT).setValues([[
       checkedEntry.date,
       checkedEntry.amount,
@@ -145,6 +149,7 @@ function saveChecks(balances) {
       return [today, balance.accountName, actual, expected, difference, now];
     });
     const firstRow = firstFreeRow(checksSheet);
+    makeRoomForRow(checksSheet, firstRow + rows.length - 1, null);
     checksSheet.getRange(firstRow, 1, rows.length, rows[0].length).setValues(rows);
     SpreadsheetApp.flush();
   } finally {
@@ -268,9 +273,16 @@ function monthOverview(spreadsheet, year, monthNumber, texts) {
       plannedExpenses += plan || 0;
     });
   }
+  const totals = sheet.getRange(MONTH_TOTALS_FIRST_ROW, 2, 4, 1).getValues().map(function (row) {
+    return Number(row[0]) || 0;
+  });
   return {
     name: texts.monthNames[monthNumber - 1],
-    expenses: Number(sheet.getRange(MONTH_TOTALS_FIRST_ROW + 1, 2).getValue()) || 0,
+    monthNumber: monthNumber,
+    income: totals[0],
+    expenses: totals[1],
+    saved: totals[2],
+    left: totals[3],
     plannedExpenses: plannedExpenses,
     categories: categories,
   };

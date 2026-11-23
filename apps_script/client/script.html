@@ -1,9 +1,11 @@
 <script>
   /**
-   * The new entry screen.
+   * The new entry screen and the morning check.
    *
    * Loads the categories and accounts from the server, lets the person
    * pick them with one tap, and sends the entry with saveEntry().
+   * The month screen, the list of entries and changing an entry are in
+   * browse_script.html.
    */
 
   const state = {
@@ -13,6 +15,7 @@
     toAccountName: '',
     isNegative: false,
     isSaving: false,
+    view: 'entry',
   };
 
   const element = function (id) { return document.getElementById(id); };
@@ -40,6 +43,8 @@
     element('tabCheckName').textContent = texts.tabCheck;
     element('checkHelp').textContent = texts.checkHelp;
     element('saveCheckButton').textContent = texts.saveCheck;
+    element('tabMonth').textContent = texts.tabMonth;
+    element('tabEntries').textContent = texts.tabEntries;
 
     showCategories();
     state.accountName = startingAccountName();
@@ -49,6 +54,7 @@
     showChecks(data.checks);
     resetForm();
     connectEvents();
+    setUpBrowsing();
 
     element('loading').hidden = true;
     element('screen').hidden = false;
@@ -68,12 +74,22 @@
     return state.data.checks.some(function (account) { return !account.checkedToday; });
   }
 
+  const VIEWS = ['entry', 'check', 'month', 'entries'];
+
   function showView(name) {
-    element('entryView').hidden = name !== 'entry';
-    element('checkView').hidden = name !== 'check';
-    element('tabEntry').classList.toggle('is-active', name === 'entry');
-    element('tabCheck').classList.toggle('is-active', name === 'check');
+    if (name !== 'entry' && state.editing) {
+      stopEditing();
+    }
+    state.view = name;
+    VIEWS.forEach(function (view) {
+      const tabName = 'tab' + view.charAt(0).toUpperCase() + view.slice(1);
+      element(view + 'View').hidden = view !== name;
+      element(tabName).classList.toggle('is-active', view === name);
+    });
     window.scrollTo(0, 0);
+    if (name === 'month' || name === 'entries') {
+      showViewedMonth();
+    }
   }
 
   function connectEvents() {
@@ -97,6 +113,11 @@
     element('saveCheckButton').addEventListener('click', saveCheck);
     element('tabEntry').addEventListener('click', function () { showView('entry'); });
     element('tabCheck').addEventListener('click', function () { showView('check'); });
+    element('tabMonth').addEventListener('click', function () { showView('month'); });
+    element('tabEntries').addEventListener('click', function () {
+      state.entryFilter = '';
+      showView('entries');
+    });
   }
 
   // ----- Categories ---------------------------------------------------------
@@ -262,31 +283,14 @@
     if (state.isSaving) {
       return;
     }
+    const entry = readForm();
+    if (!entry) {
+      return;
+    }
+    if (state.editing) {
+      return saveChanges(entry);
+    }
     const texts = state.data.texts;
-    const amount = readAmount();
-    if (amount === null) {
-      return showMessage(texts.amountMissing);
-    }
-    if (!state.categoryName) {
-      return showMessage(texts.categoryMissing);
-    }
-    if (!state.accountName) {
-      return showMessage(texts.accountMissing);
-    }
-    const isTransfer = state.categoryName === state.data.transfer.name;
-    if (isTransfer && !state.toAccountName) {
-      return showMessage(texts.toAccountMissing);
-    }
-
-    const entry = {
-      amount: state.isNegative ? -amount : amount,
-      categoryName: state.categoryName,
-      accountName: state.accountName,
-      toAccountName: isTransfer ? state.toAccountName : '',
-      description: element('description').value,
-      oneOff: element('oneOff').checked,
-      date: element('date').value,
-    };
     setSaving(true);
     google.script.run
         .withSuccessHandler(function (result) {
@@ -295,6 +299,7 @@
           showMonth(result.month);
           showDebts(result.creditCardDebts);
           showChecks(result.checks);
+          forgetMonths();
           resetForm();
           showCategoryStatus(entry.categoryName);
         })
@@ -303,6 +308,37 @@
           showMessage(problem.message);
         })
         .saveEntry(entry);
+  }
+
+  /** The entry as the form shows it, or null after telling what is missing. */
+  function readForm() {
+    const texts = state.data.texts;
+    const amount = readAmount();
+    let problem = '';
+    const isTransfer = state.categoryName === state.data.transfer.name;
+    if (amount === null) {
+      problem = texts.amountMissing;
+    } else if (!state.categoryName) {
+      problem = texts.categoryMissing;
+    } else if (!state.accountName) {
+      problem = texts.accountMissing;
+    } else if (isTransfer && !state.toAccountName) {
+      problem = texts.toAccountMissing;
+    }
+    if (problem) {
+      showMessage(problem);
+      return null;
+    }
+
+    return {
+      amount: state.isNegative ? -amount : amount,
+      categoryName: state.categoryName,
+      accountName: state.accountName,
+      toAccountName: isTransfer ? state.toAccountName : '',
+      description: element('description').value,
+      oneOff: element('oneOff').checked,
+      date: element('date').value,
+    };
   }
 
   /** The typed amount as a number, or null if it is not one. Both 12,50 and 12.50 work. */
@@ -316,10 +352,16 @@
   }
 
   function setSaving(isSaving) {
+    const texts = state.data.texts;
     state.isSaving = isSaving;
     const button = element('saveButton');
     button.disabled = isSaving;
-    button.textContent = isSaving ? state.data.texts.saving : state.data.texts.save;
+    element('deleteButton').disabled = isSaving;
+    if (isSaving) {
+      button.textContent = texts.saving;
+    } else {
+      button.textContent = state.editing ? texts.saveChanges : texts.save;
+    }
   }
 
   /** Clears what belongs to one entry; the account stays, it is usually the same. */

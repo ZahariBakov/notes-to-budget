@@ -17,13 +17,21 @@
         <button id="tabCheck" class="tab" type="button">
           <span id="tabCheckName"></span><span id="checkDot" class="dot" hidden></span>
         </button>
+        <button id="tabMonth" class="tab" type="button"></button>
+        <button id="tabEntries" class="tab" type="button"></button>
       </nav>
 
       <!-- New entry -->
       <div id="entryView" class="view">
-        <header class="top">
+        <header id="entryTop" class="top">
           <span id="monthName" class="month-name"></span>
           <span id="monthSummary" class="month-summary"></span>
+        </header>
+        <header id="editBar" class="edit-bar" hidden>
+          <button id="backButton" class="back-button" type="button">
+            <i class="ti ti-chevron-left" aria-hidden="true"></i><span id="backLabel"></span>
+          </button>
+          <span id="editTitle" class="edit-title"></span>
         </header>
 
         <main>
@@ -71,8 +79,21 @@
         <footer class="bottom">
           <p id="message" class="message" hidden></p>
           <button id="saveButton" class="save-button" type="button"></button>
+          <button id="deleteButton" class="delete-button" type="button" hidden></button>
           <p id="categoryStatus" class="category-status"></p>
         </footer>
+      </div>
+
+      <!-- One month: totals and every category -->
+      <div id="monthView" class="view" hidden>
+        <header class="month-picker" data-picker></header>
+        <main id="monthBody"></main>
+      </div>
+
+      <!-- The entries of one month -->
+      <div id="entriesView" class="view" hidden>
+        <header class="month-picker" data-picker></header>
+        <main id="entriesBody"></main>
       </div>
 
       <!-- Morning check -->
@@ -91,5 +112,6 @@
     <div id="toast" class="toast" hidden></div>
 
     <?!= include('client/script'); ?>
+    <?!= include('client/browse_script'); ?>
   </body>
 </html>

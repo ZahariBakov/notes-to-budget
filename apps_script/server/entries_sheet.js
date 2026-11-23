@@ -16,6 +16,7 @@ const ENTRY_ONE_OFF_COLUMN = 7;
 const ENTRY_ENTERED_AT_COLUMN = 8;
 const ENTRY_ID_COLUMN = 9;
 const ENTRY_COLUMN_COUNT = 9;
+const ROWS_ADDED_WHEN_FULL = 500;
 
 function prepareEntriesSheet(sheet, texts) {
   const header = [texts.date, texts.amount, texts.category, texts.account, texts.toAccount,
@@ -46,6 +47,22 @@ function firstFreeRow(sheet) {
     }
   });
   return lastFilled + 1;
+}
+
+/**
+ * Adds empty rows at the bottom when the sheet is full. New rows of
+ * "Entries" get the one-off checkbox like the rows above.
+ */
+function makeRoomForRow(sheet, row, checkboxColumn) {
+  const maxRows = sheet.getMaxRows();
+  if (row <= maxRows) {
+    return;
+  }
+  const added = Math.max(ROWS_ADDED_WHEN_FULL, row - maxRows);
+  sheet.insertRowsAfter(maxRows, added);
+  if (checkboxColumn) {
+    sheet.getRange(maxRows + 1, checkboxColumn, added, 1).insertCheckboxes();
+  }
 }
 
 /** A bold dark header row that stays in place while scrolling. */

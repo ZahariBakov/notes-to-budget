@@ -1,0 +1,492 @@
+<script>
+  /**
+   * The month screen, the list of entries and changing an entry.
+   *
+   * Both screens show the same month, chosen with the arrows at the top.
+   * A month is loaded from the server once and kept until something changes.
+   * Tapping an entry opens it in the entry form, where it can be changed or
+   * deleted.
+   */
+
+  function setUpBrowsing() {
+    const texts = state.data.texts;
+    const today = new Date();
+    if (today.getFullYear() === state.data.year) {
+      state.viewedMonth = today.getMonth() + 1;
+    } else {
+      state.viewedMonth = today.getFullYear() > state.data.year ? 12 : 1;
+    }
+    state.months = {};
+    state.entryFilter = '';
+    state.editing = null;
+
+    document.querySelectorAll('[data-picker]').forEach(function (picker) {
+      picker.appendChild(arrowButton('ti-chevron-left', texts.previousMonth, -1));
+      const name = document.createElement('span');
+      name.className = 'picker-name';
+      picker.appendChild(name);
+      picker.appendChild(arrowButton('ti-chevron-right', texts.nextMonth, 1));
+    });
+
+    element('backLabel').textContent = texts.back;
+    element('editTitle').textContent = texts.editTitle;
+    element('backButton').addEventListener('click', function () { showView('entries'); });
+    element('deleteButton').addEventListener('click', askToDelete);
+  }
+
+  function arrowButton(iconName, label, step) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'arrow-button';
+    button.title = label;
+    button.dataset.step = step;
+    const icon = document.createElement('i');
+    icon.className = 'ti ' + iconName;
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+    button.addEventListener('click', function () {
+      state.viewedMonth += step;
+      showViewedMonth();
+    });
+    return button;
+  }
+
+  /** After a change, every month is loaded again when it is shown. */
+  function forgetMonths() {
+    state.months = {};
+  }
+
+  // ----- Loading a month ----------------------------------------------------------
+
+  function showViewedMonth() {
+    const monthNumber = state.viewedMonth;
+    const texts = state.data.texts;
+    document.querySelectorAll('[data-picker]').forEach(function (picker) {
+      picker.querySelector('.picker-name').textContent =
+          texts.monthNames[monthNumber - 1] + ' ' + state.data.year;
+      picker.querySelectorAll('.arrow-button').forEach(function (button) {
+        const next = monthNumber + Number(button.dataset.step);
+        button.disabled = next < 1 || next > 12;
+      });
+    });
+
+    const details = state.months[monthNumber];
+    if (details) {
+      return showDetails(details);
+    }
+    const body = element(state.view === 'month' ? 'monthBody' : 'entriesBody');
+    body.innerHTML = '<div class="small-loading"><div class="spinner"></div></div>';
+    google.script.run
+        .withSuccessHandler(function (loaded) {
+          state.months[loaded.monthNumber] = loaded;
+          if (loaded.monthNumber === state.viewedMonth) {
+            showDetails(loaded);
+          }
+        })
+        .withFailureHandler(function (problem) {
+          body.innerHTML = '';
+          const message = document.createElement('p');
+          message.className = 'message';
+          message.style.marginTop = '16px';
+          message.textContent = problem.message;
+          body.appendChild(message);
+        })
+        .getMonthDetails(monthNumber);
+  }
+
+  function showDetails(details) {
+    if (state.view === 'month') {
+      showMonthScreen(details.overview);
+    } else if (state.view === 'entries') {
+      showEntriesScreen(details.entries);
+    }
+  }
+
+  // ----- The month screen ----------------------------------------------------------
+
+  function showMonthScreen(overview) {
+    const texts = state.data.texts;
+    const body = element('monthBody');
+    body.innerHTML = '';
+    if (!overview) {
+      body.appendChild(hint(texts.noMoneyThisMonth));
+      return;
+    }
+
+    const summary = document.createElement('div');
+    summary.className = 'summary';
+    summary.appendChild(summaryCell(texts.income, overview.income, 'is-income'));
+    summary.appendChild(summaryCell(texts.expenses, overview.expenses, ''));
+    summary.appendChild(summaryCell(texts.savedAndInvested, overview.saved, 'is-saved'));
+    summary.appendChild(summaryCell(texts.left, overview.left,
+        overview.left < 0 ? 'is-over' : ''));
+    body.appendChild(summary);
+    if (overview.plannedExpenses > 0) {
+      body.appendChild(hint(fill(texts.plannedExpenses, {
+        plan: money(overview.plannedExpenses),
+        left: money(overview.plannedExpenses - overview.expenses),
+      })));
+    }
+
+    let shown = 0;
+    categoryGroups().forEach(function (group) {
+      const used = group.categories.filter(function (category) {
+        const amounts = overview.categories[category.name];
+        return amounts && (amounts.actual !== 0 || amounts.plan);
+      });
+      if (used.length === 0) {
+        return;
+      }
+      shown += used.length;
+      const total = used.reduce(function (sum, category) {
+        return sum + overview.categories[category.name].actual;
+      }, 0);
+      body.appendChild(groupHeading(group.name, total));
+      const list = document.createElement('div');
+      list.className = 'card-list';
+      used.forEach(function (category) {
+        list.appendChild(categoryRow(category, overview.categories[category.name]));
+      });
+      body.appendChild(list);
+    });
+    if (shown === 0) {
+      body.appendChild(hint(texts.noMoneyThisMonth));
+    }
+  }
+
+  /** Expense groups in the order of the settings, then income, then saved and invested. */
+  function categoryGroups() {
+    const texts = state.data.texts;
+    const groups = [];
+    const income = { name: texts.income, categories: [] };
+    const saved = { name: texts.savedAndInvested, categories: [] };
+    state.data.categories.forEach(function (category) {
+      if (category.kind === 'income') {
+        income.categories.push(category);
+      } else if (category.kind === 'saving' || category.kind === 'investment') {
+        saved.categories.push(category);
+      } else {
+        let group = groups.find(function (each) { return each.name === category.group; });
+        if (!group) {
+          group = { name: category.group, categories: [] };
+          groups.push(group);
+        }
+        group.categories.push(category);
+      }
+    });
+    return groups.concat([income, saved]);
+  }
+
+  function summaryCell(label, amount, className) {
+    const cell = document.createElement('div');
+    cell.className = 'summary-cell ' + className;
+    const name = document.createElement('span');
+    name.className = 'summary-label';
+    name.textContent = label;
+    const value = document.createElement('span');
+    value.className = 'summary-value';
+    value.textContent = money(amount);
+    cell.appendChild(name);
+    cell.appendChild(value);
+    return cell;
+  }
+
+  /** A heading with a total on the right; a total of 0 is left out. */
+  function groupHeading(name, total) {
+    const heading = document.createElement('div');
+    heading.className = 'group-heading';
+    const title = document.createElement('span');
+    title.textContent = name;
+    const sum = document.createElement('span');
+    sum.textContent = total !== 0 ? money(total) : '';
+    heading.appendChild(title);
+    heading.appendChild(sum);
+    return heading;
+  }
+
+  /** One category: what went on it, and against the plan when it has one. */
+  function categoryRow(category, amounts) {
+    const texts = state.data.texts;
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'list-row';
+    row.appendChild(bubble(category.icon, category.kind));
+
+    const middle = document.createElement('div');
+    middle.className = 'row-middle';
+    const name = document.createElement('div');
+    name.className = 'row-title';
+    name.textContent = category.name;
+    middle.appendChild(name);
+    if (amounts.plan) {
+      const isOver = amounts.actual > amounts.plan;
+      const bar = document.createElement('div');
+      bar.className = 'bar' + (isOver ? ' is-over' : '');
+      const fillPart = document.createElement('span');
+      fillPart.style.width = Math.min(100, Math.max(0, amounts.actual / amounts.plan * 100)) + '%';
+      bar.appendChild(fillPart);
+      middle.appendChild(bar);
+      const note = document.createElement('div');
+      note.className = 'row-note' + (isOver ? ' is-over' : '');
+      note.textContent = isOver
+        ? fill(texts.overPlan, { amount: money(amounts.actual - amounts.plan) })
+        : fill(texts.planOf, { plan: money(amounts.plan) });
+      middle.appendChild(note);
+    }
+    row.appendChild(middle);
+
+    const amount = document.createElement('span');
+    amount.className = 'row-amount';
+    amount.textContent = money(amounts.actual);
+    row.appendChild(amount);
+
+    row.addEventListener('click', function () {
+      state.entryFilter = category.name;
+      showView('entries');
+    });
+    return row;
+  }
+
+  // ----- The list of entries ----------------------------------------------------------
+
+  function showEntriesScreen(entries) {
+    const texts = state.data.texts;
+    const body = element('entriesBody');
+    body.innerHTML = '';
+    if (state.entryFilter) {
+      body.appendChild(filterBar());
+    }
+    const shown = entries.filter(function (entry) {
+      return !state.entryFilter || entry.category === state.entryFilter;
+    });
+    if (shown.length === 0) {
+      body.appendChild(hint(texts.noEntriesThisMonth));
+      return;
+    }
+
+    let list = null;
+    let currentDay = '';
+    shown.forEach(function (entry) {
+      if (entry.dayKey !== currentDay) {
+        currentDay = entry.dayKey;
+        body.appendChild(groupHeading(longDay(currentDay), spentOnDay(shown, currentDay)));
+        list = document.createElement('div');
+        list.className = 'card-list';
+        body.appendChild(list);
+      }
+      list.appendChild(entryRow(entry));
+    });
+  }
+
+  function filterBar() {
+    const bar = document.createElement('div');
+    bar.className = 'filter-bar';
+    const chip = document.createElement('span');
+    chip.className = 'chip is-selected';
+    chip.textContent = state.entryFilter;
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'text-button';
+    clear.textContent = state.data.texts.showAllEntries;
+    clear.addEventListener('click', function () {
+      state.entryFilter = '';
+      showViewedMonth();
+    });
+    bar.appendChild(chip);
+    bar.appendChild(clear);
+    return bar;
+  }
+
+  /** What was spent on a day: only expenses, so a transfer or a salary does not hide it. */
+  function spentOnDay(entries, day) {
+    return entries.reduce(function (sum, entry) {
+      return entry.dayKey === day && kindOf(entry.category) === 'expense' ? sum + entry.amount : sum;
+    }, 0);
+  }
+
+  function entryRow(entry) {
+    const texts = state.data.texts;
+    const kind = kindOf(entry.category);
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'list-row';
+    row.appendChild(bubble(iconOf(entry.category), kind));
+
+    const middle = document.createElement('div');
+    middle.className = 'row-middle';
+    const title = document.createElement('div');
+    title.className = 'row-title';
+    title.textContent = kind === 'transfer' ? texts.transferTile : entry.category;
+    middle.appendChild(title);
+    const note = document.createElement('div');
+    note.className = 'row-note';
+    const account = kind === 'transfer' ? entry.account + ' → ' + entry.toAccount : entry.account;
+    note.textContent = [entry.description, account].filter(Boolean).join(' · ');
+    if (entry.oneOff) {
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = texts.oneOffShort;
+      note.appendChild(badge);
+    }
+    middle.appendChild(note);
+    row.appendChild(middle);
+
+    const amount = document.createElement('span');
+    amount.className = 'row-amount kind-' + kind;
+    amount.textContent = (kind === 'income' && entry.amount > 0 ? '+' : '') + money(entry.amount);
+    row.appendChild(amount);
+
+    row.addEventListener('click', function () { startEditing(entry); });
+    return row;
+  }
+
+  function kindOf(categoryName) {
+    const choice = findChoice(categoryName);
+    return choice ? choice.kind : 'expense';
+  }
+
+  function iconOf(categoryName) {
+    const choice = findChoice(categoryName);
+    return choice && choice.icon ? choice.icon : 'question-mark';
+  }
+
+  function bubble(iconName, kind) {
+    const circle = document.createElement('span');
+    circle.className = 'bubble kind-' + kind;
+    const icon = document.createElement('i');
+    icon.className = 'ti ti-' + (iconName || 'tag');
+    icon.setAttribute('aria-hidden', 'true');
+    circle.appendChild(icon);
+    return circle;
+  }
+
+  /** 2026-11-22 as "Неделя, 22 ноември" */
+  function longDay(key) {
+    const date = new Date(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1,
+        Number(key.slice(8, 10)));
+    const text = new Intl.DateTimeFormat(state.data.texts.numberLocale, {
+      weekday: 'long', day: 'numeric', month: 'long',
+    }).format(date);
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function hint(text) {
+    const paragraph = document.createElement('p');
+    paragraph.className = 'hint';
+    paragraph.textContent = text;
+    return paragraph;
+  }
+
+  // ----- Changing an entry ----------------------------------------------------------
+
+  /** Opens an entry in the entry form, with "Save the changes" and "Delete". */
+  function startEditing(entry) {
+    const texts = state.data.texts;
+    state.accountBeforeEditing = state.accountName;
+    showView('entry');
+    resetForm();
+    state.editing = { id: entry.id };
+    state.deleteArmed = false;
+
+    element('amount').value = formatPlain(Math.abs(entry.amount));
+    state.isNegative = entry.amount < 0;
+    showSign();
+    fitAmountWidth();
+    element('description').value = entry.description;
+    element('date').value = entry.dayKey;
+    element('oneOff').checked = entry.oneOff;
+
+    state.accountName = entry.account;
+    showAccounts();
+    chooseCategory(entry.category);
+    if (entry.category === state.data.transfer.name) {
+      state.toAccountName = entry.toAccount;
+      showToAccounts();
+    }
+    if (state.data.frequentCategoryNames.indexOf(entry.category) === -1) {
+      element('allCategories').hidden = false;
+      element('toggleAllCategories').textContent = texts.showFewerCategories;
+    }
+
+    element('entryTop').hidden = true;
+    element('debts').hidden = true;
+    element('editBar').hidden = false;
+    element('deleteButton').hidden = false;
+    element('deleteButton').textContent = texts.deleteEntry;
+    element('deleteButton').classList.remove('is-armed');
+    setSaving(false);
+    window.scrollTo(0, 0);
+  }
+
+  /** Back to an empty new entry, with the account it had before. */
+  function stopEditing() {
+    state.editing = null;
+    element('entryTop').hidden = false;
+    element('debts').hidden = false;
+    element('editBar').hidden = true;
+    element('deleteButton').hidden = true;
+    state.accountName = state.accountBeforeEditing;
+    showAccounts();
+    resetForm();
+    hideMessage();
+    setSaving(false);
+  }
+
+  function saveChanges(entry) {
+    setSaving(true);
+    google.script.run
+        .withSuccessHandler(function (result) {
+          showChangeDone(result, state.data.texts.entryUpdated);
+        })
+        .withFailureHandler(showChangeProblem)
+        .updateEntry(state.editing.id, entry, state.viewedMonth);
+  }
+
+  /** The first tap asks again; only the second one deletes. */
+  function askToDelete() {
+    const texts = state.data.texts;
+    const button = element('deleteButton');
+    if (state.isSaving) {
+      return;
+    }
+    if (!state.deleteArmed) {
+      state.deleteArmed = true;
+      button.textContent = texts.confirmDelete;
+      button.classList.add('is-armed');
+      setTimeout(function () {
+        if (state.editing && !state.isSaving) {
+          state.deleteArmed = false;
+          button.textContent = texts.deleteEntry;
+          button.classList.remove('is-armed');
+        }
+      }, 4000);
+      return;
+    }
+    setSaving(true);
+    button.textContent = texts.deleting;
+    google.script.run
+        .withSuccessHandler(function (result) {
+          showChangeDone(result, texts.entryDeleted);
+        })
+        .withFailureHandler(showChangeProblem)
+        .deleteEntry(state.editing.id, state.viewedMonth);
+  }
+
+  function showChangeDone(result, text) {
+    forgetMonths();
+    state.months[result.details.monthNumber] = result.details;
+    showMonth(result.month);
+    showDebts(result.creditCardDebts);
+    showChecks(result.checks);
+    showToast(text);
+    showView('entries');
+  }
+
+  function showChangeProblem(problem) {
+    setSaving(false);
+    state.deleteArmed = false;
+    element('deleteButton').textContent = state.data.texts.deleteEntry;
+    element('deleteButton').classList.remove('is-armed');
+    showMessage(problem.message);
+  }
+</script>
