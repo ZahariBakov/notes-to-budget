@@ -23,14 +23,30 @@ function prepareEntriesSheet(sheet, texts) {
     texts.description, texts.oneOff, texts.enteredAt, texts.entryId];
   writeHeaderRow(sheet, header);
 
+  keepEntryRowsInShape(sheet);
+  setColumnWidths(sheet, [95, 100, 190, 150, 150, 260, 95, 135, 110]);
+}
+
+/**
+ * Formats every row of "Entries", also rows added later (for example by
+ * importing old entries): dates, amounts and the one-off checkbox. A
+ * one-off already ticked, or imported as the word TRUE, stays ticked.
+ */
+function keepEntryRowsInShape(sheet) {
+  const rowCount = sheet.getMaxRows() - 1;
   const allRowsBelowHeader = function (column) {
-    return sheet.getRange(2, column, sheet.getMaxRows() - 1, 1);
+    return sheet.getRange(2, column, rowCount, 1);
   };
   allRowsBelowHeader(ENTRY_DATE_COLUMN).setNumberFormat('dd.mm.yyyy');
   allRowsBelowHeader(ENTRY_AMOUNT_COLUMN).setNumberFormat(moneyFormat());
-  allRowsBelowHeader(ENTRY_ONE_OFF_COLUMN).insertCheckboxes();
   allRowsBelowHeader(ENTRY_ENTERED_AT_COLUMN).setNumberFormat('dd.mm.yyyy hh:mm');
-  setColumnWidths(sheet, [95, 100, 190, 150, 150, 260, 95, 135, 110]);
+
+  const oneOff = allRowsBelowHeader(ENTRY_ONE_OFF_COLUMN);
+  const ticked = oneOff.getValues().map(function (row) {
+    return [row[0] === true || String(row[0]).toUpperCase() === 'TRUE'];
+  });
+  oneOff.insertCheckboxes();
+  oneOff.setValues(ticked);
 }
 
 /**

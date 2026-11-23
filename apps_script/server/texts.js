@@ -8,6 +8,13 @@ const TEXTS = {
     spreadsheetLocale: 'bg_BG',
     menuTitle: 'Бюджет',
     menuPrepare: 'Подготви или обнови таблицата',
+    menuImport: 'Внеси старите записи',
+    nothingToImport: 'Няма записи за внасяне (липсва imported_entries.js).',
+    importProblems: 'Нищо не е внесено. Тези записи имат проблем:',
+    importBadEntry: 'липсва дата, сума или номер',
+    importUnknownCategory: 'няма категория „{name}“ в „Настройки“',
+    importUnknownAccount: 'няма сметка „{name}“ в „Настройки“',
+    importedEntries: 'Внесени са {count} записа. {skipped} вече бяха в таблицата.',
     prepared: 'Таблицата е готова. Месеците и „Година“ са направени от листа „Настройки“.',
     missingPersonalSettings:
         'Липсват твоите настройки (personal_settings.js). Пусни „notes-to-budget app-settings“, ' +
@@ -132,6 +139,13 @@ const TEXTS = {
     spreadsheetLocale: '',
     menuTitle: 'Budget',
     menuPrepare: 'Prepare or refresh the spreadsheet',
+    menuImport: 'Import older entries',
+    nothingToImport: 'There are no entries to import (imported_entries.js is missing).',
+    importProblems: 'Nothing was imported. These entries have a problem:',
+    importBadEntry: 'the date, amount or number is missing',
+    importUnknownCategory: 'there is no category "{name}" in Settings',
+    importUnknownAccount: 'there is no account "{name}" in Settings',
+    importedEntries: '{count} entries imported. {skipped} were already in the sheet.',
     prepared: 'The spreadsheet is ready. The months and "Year" are made from the Settings sheet.',
     missingPersonalSettings:
         'Your settings (personal_settings.js) are missing. Run "notes-to-budget app-settings", ' +

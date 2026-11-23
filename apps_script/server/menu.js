@@ -1,8 +1,11 @@
 /** Adds the "Budget" menu to the spreadsheet every time it is opened. */
 function onOpen() {
   const texts = currentTexts();
-  SpreadsheetApp.getUi()
+  const menu = SpreadsheetApp.getUi()
       .createMenu(texts.menuTitle)
-      .addItem(texts.menuPrepare, 'prepareSpreadsheet')
-      .addToUi();
+      .addItem(texts.menuPrepare, 'prepareSpreadsheet');
+  if (hasEntriesToImport()) {
+    menu.addItem(texts.menuImport, 'importEntries');
+  }
+  menu.addToUi();
 }

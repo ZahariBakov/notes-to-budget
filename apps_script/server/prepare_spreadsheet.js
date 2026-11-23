@@ -36,6 +36,7 @@ function prepareSpreadsheet() {
   const settingsSheet = findOrCreateSheet(spreadsheet, 'settings', texts.settingsSheet,
       function (sheet) { fillSettingsSheet(sheet, texts, startingSettings(texts)); });
   addIconColumnIfMissing(settingsSheet, texts);
+  keepEntryRowsInShape(entriesSheet);
 
   const settings = readSettings(settingsSheet, texts);
   const separator = findArgumentSeparator(entriesSheet);
